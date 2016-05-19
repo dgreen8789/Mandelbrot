@@ -36,12 +36,11 @@ public class DoubleMandelbrotCalculator {
         xCoords = new double[width];
         yCoords = new double[height];
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new CalculatorThread(histogram);
+            threads[i] = new CalculatorThread(histogram, xCoords, yCoords);
             threads[i].start();
             threads[i].setName("Drawer thread " + i);
             System.out.println("Thread: " + threads[i].getName() + " started");
-            threads[i].setxCoords(xCoords);
-            threads[i].setyCoords(yCoords);
+  
         }
 
         System.out.println("");
@@ -75,21 +74,22 @@ public class DoubleMandelbrotCalculator {
                 0,
                 yCoords.length
             };
-            //System.out.println(Arrays.toString(miniWindow));
             threads[i].setMiniWindow(miniWindow);
             threads[i].setBuffer(data);
-            threads[i].signalRecalculate();
             threads[i].interrupt();
         }
-
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException ex) {
+        }
         do {
             done_calculating = true;
             for (CalculatorThread thread : threads) {
-                done_calculating &= !thread.doneCalculating();
+                done_calculating &= (thread.getState().equals(Thread.State.TIMED_WAITING));
             }
         } while (!done_calculating);
         long stop = System.currentTimeMillis();
-        System.out.println((stop - start) / 1000.0 + " sec");
+        System.out.println("Calculation took " + (stop - start) + " ms");
         //System.out.println("\n\n\n");
         return true;
     }

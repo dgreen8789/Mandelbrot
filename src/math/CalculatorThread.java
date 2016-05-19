@@ -6,11 +6,8 @@
 package math;
 
 import graphics.colors.Histogram;
-import java.awt.Point;
 import static java.lang.Double.doubleToRawLongBits;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static math.DoubleMandelbrotCalculator.MAX_ITERATIONS;
 import sun.misc.DoubleConsts;
 
@@ -22,39 +19,36 @@ public class CalculatorThread extends Thread {
 
     private final Histogram histogram;
     private int[][] buffer;
-    private double[] xCoords;
-    private double[] yCoords;
+    private final double[] xCoords;
+    private final double[] yCoords;
     //xMinPixel, xMaxPixel, yMinPixel, yMaxPixel
     private int miniWindow[];
 
-    public CalculatorThread(Histogram histogram) {
+    public CalculatorThread(Histogram histogram, double[] xCoords, double[] yCoords) {
         this.histogram = histogram;
-        PARTY_TIME = false;
+        this.xCoords = xCoords;
+        this.yCoords = yCoords;
     }
 
-    private volatile boolean PARTY_TIME;
     private volatile long sleepTime = Long.MAX_VALUE;
+
     @Override
     public void run() {
         while (true) {
-            if (PARTY_TIME) {
-                //System.out.println("GOING");
-                for (int x = miniWindow[0]; x < miniWindow[1]; x++) {
-                    for (int y = miniWindow[2]; y < miniWindow[3]; y ++) {
-                        buffer[x][y] = escape(xCoords[x], yCoords[y]);
-                        histogram.increment(buffer[x][y]);
-                        //System.out.println(xCurr + " " + yCurr + "i");
-                        //System.out.println(buffer[x][y] + "\n");
-                        //System.out.println(escape_value);
-                    }
-                    //System.out.println("Line " + xCurr + " \\ " + data.length);
-                }
-                PARTY_TIME = false;
-                
-            }
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException ex) {
+            }
+            //System.out.println("GOING");
+            for (int x = miniWindow[0]; x < miniWindow[1]; x++) {
+                for (int y = miniWindow[2]; y < miniWindow[3]; y++) {
+                    buffer[x][y] = escape(xCoords[x], yCoords[y]);
+                    histogram.increment(buffer[x][y]);
+                    //System.out.println(xCurr + " " + yCurr + "i");
+                    //System.out.println(buffer[x][y] + "\n");
+                    //System.out.println(escape_value);
+                }
+                //System.out.println("Line " + xCurr + " \\ " + data.length);
             }
         }
     }
@@ -110,24 +104,9 @@ public class CalculatorThread extends Thread {
         this.buffer = buffer;
     }
 
-    public void setxCoords(double[] xCoords) {
-        this.xCoords = xCoords;
-    }
-
-    public void setyCoords(double[] yCoords) {
-        this.yCoords = yCoords;
-    }
-
     public static int hashCode(double value) {
         long bits = doubleToLongBits(value);
         return (int) (bits ^ (bits >>> 32));
     }
 
-    public void signalRecalculate() {
-        this.PARTY_TIME = true;
-    }
-
-    public boolean doneCalculating() {
-        return this.PARTY_TIME;
-    }
 }

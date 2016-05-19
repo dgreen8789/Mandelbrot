@@ -18,6 +18,7 @@ public class GraphicsController {
     public static final int WINDOW_UPDATE = 0;
     public static final int COLOR_UPDATE = 1;
     private int colorScheme = ColorSchemes.BLACK_AND_WHITE_SQRT;
+    private static final int THREAD_COUNT = 4;
     private DoubleWindow window;
     final private int[][] data;
     private TreeMap<Integer, Integer> colors;
@@ -29,7 +30,7 @@ public class GraphicsController {
         System.out.println(width + ", " + height);
         data = new int[width][height];
         img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        DoubleMandelbrotCalculator.initialize(4, width, height);
+        DoubleMandelbrotCalculator.initialize(THREAD_COUNT, width, height);
     }
 
     /**
@@ -52,7 +53,6 @@ public class GraphicsController {
             color(img, data, colors);
         }
         mustRender[COLOR_UPDATE] = mustRender[WINDOW_UPDATE] = false;
-        color(img, data, colors);
         g.drawImage(img, null, 0, 0);
 
     }
@@ -73,7 +73,7 @@ public class GraphicsController {
             }
         }
         long stop = System.currentTimeMillis();
-        System.out.println("Pixel coloring took " + (start - stop) + " ms");
+        System.out.println("Pixel coloring took " + (stop - start) + " ms");
     }
 
     public void setColorScheme(int colorScheme) {

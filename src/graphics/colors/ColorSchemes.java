@@ -51,6 +51,7 @@ public class ColorSchemes {
         int[][] data = histogram.toIntArray();
         //System.out.println(data[1].length);
         double len = data[1].length;
+        
         int[] values = IntStream.range(0, data[1].length)
                 //Avoid instantiating a color, at some point
                 .map(x -> new Color(1.0f, 1.0f, 1.0f, (float) Math.sqrt(x / len))

@@ -192,10 +192,7 @@ public class GUI extends Thread {
             try {
                 Thread.sleep(Math.max(0, fpsWait - renderTime));
             } catch (InterruptedException e) {
-                Thread.interrupted();
-                break;
             }
-            renderTime = (System.nanoTime() - renderStart) / 1000000;
 
         }
         frame.dispose();

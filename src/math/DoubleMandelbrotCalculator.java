@@ -27,16 +27,19 @@ public class DoubleMandelbrotCalculator {
     private static double[] yCoords;
     private static double xEpsilon;
     private static double yEpsilon;
+   
     private static Histogram histogram;
-    static CalculatorThread[] threads;
+    private static int[][] data;
+    static  CalculatorThread[] threads;
 
-    public static void initialize(int numThreads, int width, int height) {
+    public static void initialize(int numThreads, int width, int height, int[][] data) {
         histogram = new Histogram(MAX_ITERATIONS);
         threads = new CalculatorThread[numThreads];
         xCoords = new double[width];
         yCoords = new double[height];
+        DoubleMandelbrotCalculator.data = data;
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new CalculatorThread(histogram, xCoords, yCoords);
+            threads[i] = new CalculatorThread(histogram, xCoords, yCoords, data);
             threads[i].start();
             threads[i].setName("Drawer thread " + i);
             System.out.println("Thread: " + threads[i].getName() + " started");
@@ -53,7 +56,7 @@ public class DoubleMandelbrotCalculator {
      * @param data
      * @return
      */
-    public static boolean draw(int[][] data, DoubleWindow window) {
+    public static boolean draw(DoubleWindow window) {
         long start = System.currentTimeMillis();
         System.out.println(window);
         xEpsilon = window.xRange / data.length * 2;
@@ -75,7 +78,6 @@ public class DoubleMandelbrotCalculator {
                 yCoords.length
             };
             threads[i].setMiniWindow(miniWindow);
-            threads[i].setBuffer(data);
             threads[i].interrupt();
         }
         try {

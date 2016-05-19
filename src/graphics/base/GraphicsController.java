@@ -3,7 +3,6 @@ package graphics.base;
 import graphics.colors.ColorSchemes;
 import math.DoubleWindow;
 import math.DoubleMandelbrotCalculator;
-import deprecated.BigDecimalMandelbrotDrawer;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.image.BufferedImage;
@@ -30,7 +29,7 @@ public class GraphicsController {
         System.out.println(width + ", " + height);
         data = new int[width][height];
         img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        DoubleMandelbrotCalculator.initialize(THREAD_COUNT, width, height);
+        DoubleMandelbrotCalculator.initialize(THREAD_COUNT, width, height, data);
     }
 
     /**
@@ -44,7 +43,7 @@ public class GraphicsController {
 
         if (mustRender[WINDOW_UPDATE]) {
             DoubleMandelbrotCalculator.getHistogram().reset();
-            DoubleMandelbrotCalculator.draw(data, window);
+            DoubleMandelbrotCalculator.draw(window);
 
         }
         //System.out.println(DoubleMandelbrotCalculator.getHistogram());

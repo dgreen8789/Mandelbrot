@@ -7,6 +7,8 @@ package math;
 
 import graphics.colors.Histogram;
 import static java.lang.Double.doubleToRawLongBits;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.TreeSet;
 import static math.DoubleMandelbrotCalculator.MAX_ITERATIONS;
 import sun.misc.DoubleConsts;
@@ -18,19 +20,20 @@ import sun.misc.DoubleConsts;
 public class CalculatorThread extends Thread {
 
     private final Histogram histogram;
-    private int[][] buffer;
+    private final int[][] buffer;
     private final double[] xCoords;
     private final double[] yCoords;
     //xMinPixel, xMaxPixel, yMinPixel, yMaxPixel
     private int miniWindow[];
 
-    public CalculatorThread(Histogram histogram, double[] xCoords, double[] yCoords) {
+    public CalculatorThread(Histogram histogram, double[] xCoords, double[] yCoords, int[][] buffer) {
         this.histogram = histogram;
         this.xCoords = xCoords;
         this.yCoords = yCoords;
+        this.buffer = buffer;
     }
 
-    private volatile long sleepTime = Long.MAX_VALUE;
+    private static final long sleepTime = Long.MAX_VALUE;
 
     @Override
     public void run() {
@@ -58,10 +61,14 @@ public class CalculatorThread extends Thread {
     private double yn;
     private double xt;
     private int z;
+    private boolean qCheck = true;
     private final TreeSet<Integer> hashes = new TreeSet<>();
 
     private int escape(double x_curr, double y_curr) {
         //System.out.println(x_curr + ", " + y_curr + "i");
+        if (qCheck) {
+            //if(p2Check(x_curr, y_curr)) return MAX_ITERATIONS;
+        }
         xn = x_curr;
         yn = y_curr;
         hashes.clear();
@@ -83,30 +90,43 @@ public class CalculatorThread extends Thread {
         return MAX_ITERATIONS;
     }
 
-    ///Code copied straight from JVM to avoid using Double class
-    public static long doubleToLongBits(double value) {
-        long result = doubleToRawLongBits(value);
-        // Check for NaN based on values of bit fields, maximum
-        // exponent and nonzero significand.
-        if (((result & DoubleConsts.EXP_BIT_MASK)
-                == DoubleConsts.EXP_BIT_MASK)
-                && (result & DoubleConsts.SIGNIF_BIT_MASK) != 0L) {
-            result = 0x7ff8000000000000L;
-        }
-        return result;
-    }
 
     public void setMiniWindow(int[] minWindow) {
         this.miniWindow = minWindow;
     }
 
-    public void setBuffer(int[][] buffer) {
-        this.buffer = buffer;
-    }
-
     public static int hashCode(double value) {
-        long bits = doubleToLongBits(value);
+        long bits = doubleToRawLongBits(value);
         return (int) (bits ^ (bits >>> 32));
+    }
+    
+    private BigDecimal bxn;
+    private BigDecimal byn;
+    private BigDecimal bxt;
+    private static final BigDecimal FOUR = BigDecimal.valueOf(4);
+    private static final BigDecimal TWO = BigDecimal.valueOf(2);
+
+    private int escape(BigDecimal x_curr, BigDecimal y_curr, MathContext mc) {
+        //System.out.println(x_curr.toPlainString() + ", " + y_curr.toPlainString() + "i");
+        bxn = x_curr;
+        byn = y_curr;
+        hashes.clear();
+        z = 0;
+        while (z < MAX_ITERATIONS - 1) {
+            if (bxn.multiply(bxn, mc).add(byn.multiply(byn, mc), mc).compareTo(FOUR) >= 0) {
+                return z;
+            }
+            if (!hashes.add(37 * bxn.hashCode() + byn.hashCode())) {
+                //System.out.println("saved " + (MAX_ITERATIONS - z));
+                return MAX_ITERATIONS - 1;
+            }
+            bxt = bxn.multiply(bxn, mc).subtract(byn.multiply(byn, mc), mc).add(x_curr, mc);
+            byn = TWO.multiply(bxn, mc).multiply(byn, mc).add(y_curr, mc);
+            bxn = bxt;
+            z++;
+        }
+
+        return MAX_ITERATIONS - 1;
     }
 
 }

@@ -1,6 +1,5 @@
 package graphics.base;
 
-
 import math.DoubleMandelbrotCalculator;
 import math.DoubleWindow;
 import java.awt.event.FocusEvent;
@@ -12,7 +11,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.Arrays;
 import javax.swing.event.MouseInputListener;
 
 /**
@@ -21,15 +19,15 @@ import javax.swing.event.MouseInputListener;
  */
 public class ControlHandler implements MouseInputListener, KeyListener, WindowListener, FocusListener, MouseWheelListener {
 
-    private char ZOOM_KEY = 'W';
-    private char UNZOOM_KEY = 'S';
-    private char LEFT_KEY = 'A';
-    private char RIGHT_KEY = 'D';
-    private char COLOR_KEY = 'C';
+    private final char UP_KEY = 'W';
+    private final char DOWN_KEY = 'S';
+    private final char LEFT_KEY = 'A';
+    private final char RIGHT_KEY = 'D';
+    private final char COLOR_KEY = 'C';
     private DoubleWindow window;
-    private GUI GUI;
+    private final GUI GUI;
 
-    private final boolean[] InputMask = new boolean[6];
+    private final boolean[] InputMask = new boolean[7];
 
     public ControlHandler(GUI gui) {
         GUI = gui;
@@ -50,34 +48,31 @@ public class ControlHandler implements MouseInputListener, KeyListener, WindowLi
 
     @Override
     public void keyPressed(KeyEvent e) {
+
         char c = Character.toUpperCase(e.getKeyChar());
-
-        if (c == ZOOM_KEY) {
-
+        switch (c) {
+            case UP_KEY:
+                InputMask[GraphicsController.WINDOW_PAN_UP_UPDATE] = true;
+                break;
+            case DOWN_KEY:
+                InputMask[GraphicsController.WINDOW_PAN_DOWN_UPDATE] = true;
+                break;
+            case LEFT_KEY:
+                InputMask[GraphicsController.WINDOW_PAN_LEFT_UPDATE] = true;
+                break;
+            case RIGHT_KEY:
+                InputMask[GraphicsController.WINDOW_PAN_RIGHT_UPDATE] = true;
+                break;
+            case COLOR_KEY:
+                InputMask[GraphicsController.WINDOW_COLOR_UPDATE] = true;
+                break;
         }
-        if (c == UNZOOM_KEY) {
-
-        }
-        if (c == LEFT_KEY) {
-
-        }
-        if (c == RIGHT_KEY) {
-
-        }
+        InputMask[GraphicsController.ANYTHING] = true;
 
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        char c = Character.toUpperCase(e.getKeyChar());
-        if (c == ZOOM_KEY) {
-        }
-        if (c == UNZOOM_KEY) {
-        }
-        if (c == LEFT_KEY) {
-        }
-        if (c == RIGHT_KEY) {
-        }
 
     }
 
@@ -96,14 +91,14 @@ public class ControlHandler implements MouseInputListener, KeyListener, WindowLi
 
         if (e.getButton() == MouseEvent.BUTTON1) {
             double[] coords = DoubleMandelbrotCalculator.coordinateByPoint(e.getPoint(), window);
-
             window.zoomIn(coords[0], coords[1]);
-            InputMask[GraphicsController.WINDOW_UPDATE] = true;
+            InputMask[GraphicsController.WINDOW_ZOOM_UPDATE] = true;
         }
         if (e.getButton() == MouseEvent.BUTTON3) {
             window.zoomOut();
-            InputMask[GraphicsController.WINDOW_UPDATE] = true;
+            InputMask[GraphicsController.WINDOW_ZOOM_UPDATE] = true;
         }
+        InputMask[GraphicsController.ANYTHING] = true;
 
     }
 
@@ -155,32 +150,17 @@ public class ControlHandler implements MouseInputListener, KeyListener, WindowLi
     public void mouseWheelMoved(MouseWheelEvent e) {
     }
 
-    public char getZOOM_KEY() {
-        return ZOOM_KEY;
-    }
-
-    public char getUNZOOM_KEY() {
-        return UNZOOM_KEY;
-    }
-
-    public char getLEFT_KEY() {
-        return LEFT_KEY;
-    }
-
-    public char getRIGHT_KEY() {
-        return RIGHT_KEY;
+    public void setWindow(DoubleWindow window) {
+        this.window = window;
     }
 
     public boolean[] getInputMask() {
         return InputMask;
     }
 
-    public void setWindow(DoubleWindow window) {
-        this.window = window;
-    }
-
     void forceUpdate() {
-        Arrays.fill(InputMask, true);
+        InputMask[GraphicsController.ANYTHING] = InputMask[GraphicsController.WINDOW_ZOOM_UPDATE]
+                = InputMask[GraphicsController.WINDOW_COLOR_UPDATE] = true;
     }
 
 }

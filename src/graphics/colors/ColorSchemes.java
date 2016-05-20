@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
  */
 public class ColorSchemes {
     
-    public static final int BLACK_AND_WHITE_SQRT = 1;
+    public static final int BLACK_AND_WHITE_SQRT = 2;
     
     private static final Method[] methods = ColorSchemes.class.getMethods();
     private static final TreeMap<Integer, Integer> colors = new TreeMap<>();
@@ -64,6 +64,11 @@ public class ColorSchemes {
         long stop = System.currentTimeMillis();
         System.out.println("Color generation took " + (stop - start) + " ms");
         return colors;
+    }
+
+    public static int getNextScheme(int colorScheme) {
+        
+        return colorScheme;
     }
     
 }

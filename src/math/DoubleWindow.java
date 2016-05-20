@@ -52,5 +52,19 @@ public class DoubleWindow {
                 Double.parseDouble(pieces[11]) * Math.pow(10, Integer.parseInt(pieces[12].substring(0, 2)))
         );
     }
+    public void shiftRight(double amt){
+        xCenter += amt;
+    }
+    public void shiftLeft(double amt){
+        xCenter -= amt;
+    }
+     public void shiftUp(double amt){
+        yCenter += amt;
+    }
+     public void shiftDown(double amt){
+         yCenter -= amt;
+     }
+
+
 
 }

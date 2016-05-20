@@ -6,6 +6,7 @@ import math.DoubleMandelbrotCalculator;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.TreeMap;
 
 /**
@@ -14,8 +15,14 @@ import java.util.TreeMap;
  */
 public class GraphicsController {
 
-    public static final int WINDOW_UPDATE = 0;
-    public static final int COLOR_UPDATE = 1;
+    public static final int WINDOW_ZOOM_UPDATE = 0;
+    public static final int WINDOW_PAN_UP_UPDATE = 1;
+    public static final int WINDOW_PAN_DOWN_UPDATE = 2;
+    public static final int WINDOW_PAN_LEFT_UPDATE = 3;
+    public static final int WINDOW_PAN_RIGHT_UPDATE = 4;
+    public static final int WINDOW_COLOR_UPDATE = 5;
+    public static final int ANYTHING = 6;
+
     private int colorScheme = ColorSchemes.BLACK_AND_WHITE_SQRT;
     private static final int THREAD_COUNT = 4;
     private DoubleWindow window;
@@ -39,19 +46,33 @@ public class GraphicsController {
      * @param width the width of the canvas to draw on
      * @param height the height of the canvas to draw on
      */
+    private int pixelShiftDistance = 10;
+
     void render(Graphics2D g, boolean[] mustRender) {
-
-        if (mustRender[WINDOW_UPDATE]) {
-            DoubleMandelbrotCalculator.getHistogram().reset();
-            DoubleMandelbrotCalculator.draw(window);
-
-        }
-        //System.out.println(DoubleMandelbrotCalculator.getHistogram());
-        if (mustRender[WINDOW_UPDATE] || mustRender[COLOR_UPDATE]) {
+        if (mustRender[ANYTHING]) {
+            if (mustRender[WINDOW_ZOOM_UPDATE]) {
+                DoubleMandelbrotCalculator.getHistogram().reset();
+                DoubleMandelbrotCalculator.draw(window);
+            }
+            if (mustRender[WINDOW_PAN_RIGHT_UPDATE]) {
+                DoubleMandelbrotCalculator.panRight(pixelShiftDistance, window);
+            }
+            if (mustRender[WINDOW_PAN_LEFT_UPDATE]) {
+                DoubleMandelbrotCalculator.panLeft(pixelShiftDistance, window);
+            }
+            if (mustRender[WINDOW_PAN_DOWN_UPDATE]) {
+                DoubleMandelbrotCalculator.panDown(pixelShiftDistance, window);
+            }
+             if (mustRender[WINDOW_PAN_UP_UPDATE]) {
+                DoubleMandelbrotCalculator.panUp(pixelShiftDistance, window);
+            }
+             if(mustRender[WINDOW_COLOR_UPDATE]){
+                 colorScheme = ColorSchemes.getNextScheme(colorScheme);
+             }
             colors = ColorSchemes.generate(DoubleMandelbrotCalculator.getHistogram(), colorScheme);
             color(img, data, colors);
+            Arrays.fill(mustRender, false);
         }
-        mustRender[COLOR_UPDATE] = mustRender[WINDOW_UPDATE] = false;
         g.drawImage(img, null, 0, 0);
 
     }
@@ -67,7 +88,9 @@ public class GraphicsController {
                 if (color == null) {
                     //System.out.println("Color not found for point " + "( " + x + ", " + y + " )");
                 } else {
-                    img.setRGB(x, y, color); //This is a problem, needs optimization, O(N^2) is BAD
+                    img.setRGB(x, y, color);
+                    //This is a problem, needs optimization, O(N^2) is BAD
+                    //jk its like .1% of processor time lol
                 }
             }
         }
@@ -85,6 +108,14 @@ public class GraphicsController {
 
     public DoubleWindow getWindow() {
         return window;
+    }
+
+    public int getPixelShiftDistance() {
+        return pixelShiftDistance;
+    }
+
+    public void setPixelShiftDistance(int pixelShiftDistance) {
+        this.pixelShiftDistance = pixelShiftDistance;
     }
 
 }

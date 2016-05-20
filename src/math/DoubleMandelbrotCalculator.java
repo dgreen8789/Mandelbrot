@@ -58,7 +58,7 @@ public class DoubleMandelbrotCalculator {
      * @param data
      * @return
      */
-    public static void draw(DoubleWindow window) {
+                       public static void draw(DoubleWindow window) {
         long start = System.currentTimeMillis();
         System.out.println(window);
         xEpsilon = window.xRange / data.length * 2;
@@ -229,7 +229,6 @@ public class DoubleMandelbrotCalculator {
         try {
             Thread.sleep(waitTime);
         } catch (InterruptedException ex) {
-            Logger.getLogger(DoubleMandelbrotCalculator.class.getName()).log(Level.SEVERE, null, ex);
         }
         while (calculating(threads));
     }

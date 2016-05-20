@@ -20,23 +20,6 @@ public class test {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        KeyListener c = new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-        };
-        int len = 123498;
-        long[] z =  new long[len];
+        System.out.println((float)(int)(56.67));
     }
 }

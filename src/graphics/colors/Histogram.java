@@ -38,6 +38,11 @@ public class Histogram {
             counter.incrementAndGet();
         }
     }
+    public void increment(int point, int amt){
+        if (histogram[point].addAndGet(amt) == amt) {
+            counter.incrementAndGet();
+        }
+    }
     public void decrement(int point){
         if(histogram[point].decrementAndGet() == 0){
             counter.decrementAndGet();

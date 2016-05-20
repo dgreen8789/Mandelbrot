@@ -61,14 +61,10 @@ public class CalculatorThread extends Thread {
     private double yn;
     private double xt;
     private int z;
-    private boolean qCheck = true;
     private final TreeSet<Integer> hashes = new TreeSet<>();
 
     private int escape(double x_curr, double y_curr) {
-        //System.out.println(x_curr + ", " + y_curr + "i");
-        if (qCheck) {
-            //if(p2Check(x_curr, y_curr)) return MAX_ITERATIONS;
-        }
+
         xn = x_curr;
         yn = y_curr;
         hashes.clear();
@@ -100,33 +96,4 @@ public class CalculatorThread extends Thread {
         return (int) (bits ^ (bits >>> 32));
     }
     
-    private BigDecimal bxn;
-    private BigDecimal byn;
-    private BigDecimal bxt;
-    private static final BigDecimal FOUR = BigDecimal.valueOf(4);
-    private static final BigDecimal TWO = BigDecimal.valueOf(2);
-
-    private int escape(BigDecimal x_curr, BigDecimal y_curr, MathContext mc) {
-        //System.out.println(x_curr.toPlainString() + ", " + y_curr.toPlainString() + "i");
-        bxn = x_curr;
-        byn = y_curr;
-        hashes.clear();
-        z = 0;
-        while (z < MAX_ITERATIONS - 1) {
-            if (bxn.multiply(bxn, mc).add(byn.multiply(byn, mc), mc).compareTo(FOUR) >= 0) {
-                return z;
-            }
-            if (!hashes.add(37 * bxn.hashCode() + byn.hashCode())) {
-                //System.out.println("saved " + (MAX_ITERATIONS - z));
-                return MAX_ITERATIONS - 1;
-            }
-            bxt = bxn.multiply(bxn, mc).subtract(byn.multiply(byn, mc), mc).add(x_curr, mc);
-            byn = TWO.multiply(bxn, mc).multiply(byn, mc).add(y_curr, mc);
-            bxn = bxt;
-            z++;
-        }
-
-        return MAX_ITERATIONS - 1;
-    }
-
 }

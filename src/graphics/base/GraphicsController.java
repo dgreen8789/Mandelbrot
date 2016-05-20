@@ -1,6 +1,7 @@
 package graphics.base;
 
 import graphics.colors.ColorSchemes;
+import java.awt.Color;
 import math.DoubleWindow;
 import math.DoubleMandelbrotCalculator;
 import java.awt.Graphics2D;
@@ -22,7 +23,7 @@ public class GraphicsController {
     public static final int WINDOW_PAN_RIGHT_UPDATE = 4;
     public static final int WINDOW_COLOR_UPDATE = 5;
     public static final int ANYTHING = 6;
-
+    public static final int MAX_SHIFT_DISTANCE = 10;
     private int colorScheme = ColorSchemes.BLACK_AND_WHITE_SQRT;
     private static final int THREAD_COUNT = 4;
     private DoubleWindow window;
@@ -46,37 +47,73 @@ public class GraphicsController {
      * @param width the width of the canvas to draw on
      * @param height the height of the canvas to draw on
      */
-    private int pixelShiftDistance = 10;
+    private int pixelShiftDistance = 1;
+
+    private int lastCommand = -1;
 
     void render(Graphics2D g, boolean[] mustRender) {
         if (mustRender[ANYTHING]) {
             if (mustRender[WINDOW_ZOOM_UPDATE]) {
                 DoubleMandelbrotCalculator.getHistogram().reset();
                 DoubleMandelbrotCalculator.draw(window);
+                lastCommand = WINDOW_ZOOM_UPDATE;
             }
             if (mustRender[WINDOW_PAN_RIGHT_UPDATE]) {
+                if (lastCommand == WINDOW_PAN_RIGHT_UPDATE) {
+                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                } else {
+                    pixelShiftDistance = 1;
+                }
+                lastCommand = WINDOW_PAN_RIGHT_UPDATE;
                 DoubleMandelbrotCalculator.panRight(pixelShiftDistance, window);
             }
             if (mustRender[WINDOW_PAN_LEFT_UPDATE]) {
+                if (lastCommand == WINDOW_PAN_LEFT_UPDATE) {
+                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                } else {
+                    pixelShiftDistance = 1;
+                }
+                lastCommand = WINDOW_PAN_LEFT_UPDATE;
                 DoubleMandelbrotCalculator.panLeft(pixelShiftDistance, window);
             }
             if (mustRender[WINDOW_PAN_DOWN_UPDATE]) {
+                if (lastCommand == WINDOW_PAN_DOWN_UPDATE) {
+                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                } else {
+                    pixelShiftDistance = 1;
+                }
+                lastCommand = WINDOW_PAN_DOWN_UPDATE;
                 DoubleMandelbrotCalculator.panDown(pixelShiftDistance, window);
             }
-             if (mustRender[WINDOW_PAN_UP_UPDATE]) {
+            if (mustRender[WINDOW_PAN_UP_UPDATE]) {
+                if (lastCommand == WINDOW_PAN_UP_UPDATE) {
+                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                } else {
+                    pixelShiftDistance = 1;
+                }
+                lastCommand = WINDOW_PAN_UP_UPDATE;
                 DoubleMandelbrotCalculator.panUp(pixelShiftDistance, window);
             }
-             if(mustRender[WINDOW_COLOR_UPDATE]){
-                 colorScheme = ColorSchemes.getNextScheme(colorScheme);
-             }
+            if (mustRender[WINDOW_COLOR_UPDATE]) {
+                lastCommand = WINDOW_COLOR_UPDATE;
+                colorScheme = ColorSchemes.getNextScheme(colorScheme);
+            }
             colors = ColorSchemes.generate(DoubleMandelbrotCalculator.getHistogram(), colorScheme);
             color(img, data, colors);
             Arrays.fill(mustRender, false);
         }
         g.drawImage(img, null, 0, 0);
+        g.setColor(Color.red);
+        String str = window.toPresentationString();
+        int textLength = Math.min(data.length, str.length() / 75 * data.length);
+        g.setFont(GraphicsUtilities.fillRect(str, g, textLength, MAX_TEXT_HEIGHT));
+        g.drawString(str, 0 , data[0].length - MAX_TEXT_HEIGHT / 2);
+        
 
     }
-
+    
+    private static final int MAX_TEXT_HEIGHT = 40;
+    
     public void color(BufferedImage image, int[][] mandelbrotData, TreeMap<Integer, Integer> colors) {
         long start = System.currentTimeMillis();
         for (int x = 0; x < mandelbrotData.length; x++) {
@@ -85,6 +122,7 @@ public class GraphicsController {
                 //System.out.println(y);
                 //System.out.println(mandelbrotData[x][y]);
                 Integer color = colors.get(mandelbrotData[x][y]);
+                //colors.replace(colors.lastKey(), Color.RED.getRGB()); //makes the most expensive renders be red
                 if (color == null) {
                     //System.out.println("Color not found for point " + "( " + x + ", " + y + " )");
                 } else {

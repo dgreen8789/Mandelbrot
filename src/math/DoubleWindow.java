@@ -43,6 +43,14 @@ public class DoubleWindow {
     public String toString() {
         return "Window{" + "xCenter=" + xCenter + ", yCenter=" + yCenter + ", xRange=" + xRange + ", yRange=" + yRange + '}';
     }
+    public String toPresentationString(){
+        return String.format("Current Window: X from %s to %s, Y from %s to %s. Magnification is 10^%sx", 
+                Double.toString(xCenter - xRange),
+                Double.toString(xCenter + xRange),
+                Double.toString(yCenter - yRange),
+                Double.toString(yCenter + yRange),
+                Integer.toString((int)(-1 * Math.log10(yRange))));
+    }
     public static DoubleWindow fromString(String str){
         String[] pieces = str.split("[=]|[, ]|[E]");
         return new DoubleWindow(

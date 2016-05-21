@@ -107,20 +107,16 @@ public class GraphicsController {
         String str = window.toPresentationString();
         int textLength = Math.min(data.length, str.length() / 75 * data.length);
         g.setFont(GraphicsUtilities.fillRect(str, g, textLength, MAX_TEXT_HEIGHT));
-        g.drawString(str, 0 , data[0].length - MAX_TEXT_HEIGHT / 2);
-        
+        g.drawString(str, 0, data[0].length - MAX_TEXT_HEIGHT / 2);
 
     }
-    
+
     private static final int MAX_TEXT_HEIGHT = 40;
-    
+
     public void color(BufferedImage image, int[][] mandelbrotData, TreeMap<Integer, Integer> colors) {
         long start = System.currentTimeMillis();
         for (int x = 0; x < mandelbrotData.length; x++) {
             for (int y = 0; y < mandelbrotData[0].length; y++) {
-                //System.out.println(x);
-                //System.out.println(y);
-                //System.out.println(mandelbrotData[x][y]);
                 Integer color = colors.get(mandelbrotData[x][y]);
                 //colors.replace(colors.lastKey(), Color.RED.getRGB()); //makes the most expensive renders be red
                 if (color == null) {
@@ -130,6 +126,7 @@ public class GraphicsController {
                     //This is a problem, needs optimization, O(N^2) is BAD
                     //jk its like .1% of processor time lol
                 }
+//                img.setRGB(x, y, mandelbrotData[x][y] > -1 ? Color.RED.getRGB() : Color.BLACK.getRGB());
             }
         }
         long stop = System.currentTimeMillis();

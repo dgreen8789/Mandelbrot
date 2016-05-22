@@ -118,15 +118,15 @@ public class GraphicsController {
         for (int x = 0; x < mandelbrotData.length; x++) {
             for (int y = 0; y < mandelbrotData[0].length; y++) {
                 Integer color = colors.get(mandelbrotData[x][y]);
-                //colors.replace(colors.lastKey(), Color.RED.getRGB()); //makes the most expensive renders be red
-                if (color == null) {
-                    //System.out.println("Color not found for point " + "( " + x + ", " + y + " )");
-                } else {
-                    img.setRGB(x, y, color);
-                    //This is a problem, needs optimization, O(N^2) is BAD
-                    //jk its like .1% of processor time lol
-                }
-//                img.setRGB(x, y, mandelbrotData[x][y] > -1 ? Color.RED.getRGB() : Color.BLACK.getRGB());
+//                //colors.replace(colors.lastKey(), Color.RED.getRGB()); //makes the most expensive renders be red
+//                if (color == null) {
+//                    //System.out.println("Color not found for point " + "( " + x + ", " + y + " )");
+//                } else {
+//                    img.setRGB(x, y, color);
+//                    //This is a problem, needs optimization, O(N^2) is BAD
+//                    //jk its like .1% of processor time lol
+//                }
+                img.setRGB(x, y, mandelbrotData[x][y] > -1 ? Color.RED.getRGB() : Color.BLACK.getRGB());
             }
         }
         long stop = System.currentTimeMillis();

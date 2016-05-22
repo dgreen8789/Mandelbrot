@@ -21,20 +21,18 @@ public class CalculatorThread extends Thread {
     private final int[][] buffer;
     private final double[] xCoords;
     private final double[] yCoords;
-    private final int[][] segments;
     //xMinPixel, xMaxPixel, yMinPixel, yMaxPixel
     private int miniWindow[];
+    private int val;
 
     public CalculatorThread(Histogram histogram, double[] xCoords, double[] yCoords, int[][] buffer) {
         this.histogram = histogram;
         this.xCoords = xCoords;
         this.yCoords = yCoords;
         this.buffer = buffer;
-        this.segments = new int[yCoords.length][2];
     }
 
     private static final long sleepTime = Long.MAX_VALUE;
-    private int x0, yi, traceVal;
 
     @Override
     public void run() {
@@ -43,121 +41,14 @@ public class CalculatorThread extends Thread {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException ex) {
             }
-            printInfo();
-            int x;
-            for (x = miniWindow[1] - 1; x >= miniWindow[0]; x--) {
-                Arrays.fill(buffer[x], -1);
+            for (int i = miniWindow[0]; i < miniWindow[1]; i++) {
+                Arrays.fill(buffer[i], -1);
             }
-
-            int y = miniWindow[2];
-            x++;
-            while (y < miniWindow[3] && buffer[x][y] == -1) {
-                traceVal = buffer[x][y] = escape(xCoords[x], yCoords[y]);
-                histogram.increment(traceVal);
-                x0 = x++;
-                while (x < miniWindow[1]) {
-                    buffer[x][y] = escape(xCoords[x], yCoords[y]);
-                    histogram.increment(buffer[x][y]);
-                    if (buffer[x][y] != traceVal) {
-                        x++;
-                        break;
-                    }
-                    x++;
-                }
-                yi = trace(x0, x, y + 1);                
-                while(yi > miniWindow(1))
-                
-                if (x == miniWindow[1]) {
-                    x = miniWindow[0];
-                    y++;
-                }
-
-            }
-
-            // System.out.println("GOING");
-//            for (x = miniWindow[0]; x < miniWindow[1]; x++) {
-//                for (y = miniWindow[2]; y < miniWindow[3]; y++) {
-//                    if (buffer[x][y] == -1) {
-//                        //System.out.println("CLEANUP:" + x + ", " + y);
-//                        buffer[x][y] = escape(xCoords[x], yCoords[y]);
-//                        histogram.increment(buffer[x][y]);
-//                    }
-//                    //System.out.println(xCurr + " " + yCurr + "i");
-//                    //System.out.println(buffer[x][y] + "\n");
-//                    //System.out.println(escape_value);
-//                }
-//                //System.out.println("Line " + xCurr + " \\ " + data.length);
-//            }
+            render(miniWindow[0], miniWindow[1], miniWindow[2], miniWindow[3]);
+            
         }
     }
 
-    private int trace(int x0, int xf, int y) {
-        if (xf >= 1360 || x0 < 0) {
-            System.out.println("bad bounds in X");
-            return y;
-        }
-        if (xf - x0 < 3) {
-            System.out.printf("Segment of length < 3 %d(incl.) to %d(incl.) with escape value %d at y = %d identified. Returning...\n", x0, xf, traceVal,y);
-            return y;
-        } else {
-            System.out.printf("Segment %d(incl.) to %d(incl.) with escape val %d at y = %d identified\n", x0, xf, traceVal, y);
-        }
-        if (y == miniWindow[3]) {
-            //System.out.println("Reached rendering bounds. Returning...");
-            return y;
-        }
-        segments[y][0] = segments[y][1] = -1;
-        buffer[x0][y] = escape(xCoords[x0], yCoords[y]);
-        buffer[xf][y] = escape(xCoords[xf], yCoords[y]);
-        if (buffer[x0][y] == traceVal) {
-            if (x0 > miniWindow[0]) {
-                x0 = lookLeft(x0, miniWindow[0], y, traceVal);
-            }
-
-        } else {
-            histogram.increment(buffer[x0][y]);
-            x0 = lookRight(x0, xf, y, traceVal);
-
-        }
-        if (buffer[xf][y] == traceVal) {
-            if (xf < miniWindow[1]) {
-                xf = lookRight(xf, miniWindow[1], y, traceVal);
-
-            }
-        } else {
-            histogram.increment(buffer[xf][y]);
-            xf = lookLeft(xf, x0, y, traceVal);
-        }
-        segments[y][0] = x0;
-        segments[y][1] = xf;
-        if (segments[y][0] == -1 || segments[y][1] == -1) {
-            System.out.println("Area detected to have ended.");
-            return y - 1;
-        }
-        return trace(segments[y][0], segments[y][1], y + 1);
-    }
-
-    private int lookRight(int startX, int stopX, int y, int val) {
-        while (startX < stopX) {
-            int eVal = escape(xCoords[startX], yCoords[y]);
-            if (eVal != val) {
-                return startX;
-            }
-            startX++;
-        }
-        return -1;
-    }
-
-    private int lookLeft(int startX, int stopX, int y, int val) {
-        while (startX > stopX) {
-            int eVal = escape(xCoords[startX], yCoords[y]);
-            if (eVal != val) {
-                return startX;
-            }
-            startX--;
-        }
-        return -1;
-    }
     //variables for the escape algorithm
     private double xn;
     private double yn;
@@ -197,14 +88,129 @@ public class CalculatorThread extends Thread {
         return (int) (bits ^ (bits >>> 32));
     }
 
-    public synchronized void printInfo() {
-        System.out.println("Thread: " + Thread.currentThread().getName() + " drawing from" + "\n"
-                + "X: " + miniWindow[0] + " to " + miniWindow[1] + "\n"
-                + "Y: " + miniWindow[2] + " to " + miniWindow[3]);
+    public boolean testBox(int xMin, int xMax, int yMin, int yMax) {
+        if(xMax - xMin < 2 || yMax - yMin < 2) return false;
+        if (buffer[xMin][yMin] == -1) {
+            buffer[xMin][yMin] = escape(xCoords[xMin], yCoords[yMin]);
+        }
+        if (buffer[xMax][yMin] == -1) {
+            buffer[xMax][yMin] = escape(xCoords[xMax], yCoords[yMin]);
+        }
+        if (buffer[xMin][yMax] == -1) {
+            buffer[xMin][yMax] = escape(xCoords[xMin], yCoords[yMax]);
+        }
+        if (buffer[xMax][yMax] == -1) {
+            buffer[xMax][yMax] = escape(xCoords[xMax], yCoords[yMax]);
+        }
+        val = buffer[xMin][yMin];
+        //System.out.println(val);
+        if (buffer[xMin][yMax] != val) {
+            return false;
+        }
+        if (buffer[xMax][yMin] != val) {
+            return false;
+        }
+        if (buffer[xMax][yMax] != val) {
+            return false;
+        }
+        xLoop:
+        for (int x = xMin + 1; x < xMax; x++) {
+            if (buffer[x][yMin] == -1) {
+                buffer[x][yMin] = escape(xCoords[x], yCoords[yMin]);
+            }
+            if (buffer[x][yMin] != val) {
+                return false;
+            }
+            if (buffer[x][yMax] == -1) {
+                buffer[x][yMax] = escape(xCoords[x], yCoords[yMax]);
+            }
+            if (buffer[x][yMax] != val) {
+                return false;
+            }
+        }
+        yLoop:
+        for (int y = yMin + 1; y < yMax; y++) {
+            if (buffer[xMin][y] == -1) {
+                buffer[xMin][y] = escape(xCoords[xMin], yCoords[y]);
+            }
 
+            if (buffer[xMin][y] != val) {
+                return false;
+            }
+              
+            if (buffer[xMax][y] == -1) {
+                buffer[xMax][y] = escape(xCoords[xMax], yCoords[y]);
+              
+
+            }
+            if (buffer[xMax][y] != val) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    private int findBottom() {
+    /**
+     * Updates the buffer array and the histogram;
+     */
+    public void iteratePlain(int xMin, int xMax, int yMin, int yMax) {
+        for (int x = xMin; x < xMax; x++) {
+            for (int y = yMin; y < yMax; y++) {
+                if (buffer[x][y] == -1) {
+                    buffer[x][y] = escape(xCoords[x], yCoords[y]);
+                }
+                histogram.increment(buffer[x][y]);
+                //System.out.println(xCurr + " " + yCurr + "i");
+                //System.out.println(buffer[x][y] + "\n");
+                //System.out.println(escape_value);
+            }
+            //System.out.println("Line " + xCurr + " \\ " + data.length);
+        }
+    }
+
+    private void render(int xMin, int xMax, int yMin, int yMax) {
+        boolean a, b;
+        int dx, dy;
+        if (testBox(xMin, xMax - 1, yMin, yMax - 1)) {
+            //System.out.println("called");
+            for (int x = xMin; x < xMax; x++) {
+                //Arrays.fill(buffer[x], yMin, yMax, val);
+            }
+            histogram.increment(val, (yMax - yMin) * (xMax - xMin));
+        } else {
+            //System.out.println("not called");
+            dx = xMax - xMin;
+            dy = yMax - yMin;
+            a = dx < 5;
+            b = dy < 5;
+            if (a || b) {
+                if (a && b) {
+                    iteratePlain(xMin, xMax, yMin, yMax);
+                    return;
+                } else {
+                    if (b) {
+                        render(xMin, xMin + dx / 4, yMin, yMax);
+                        render(xMin + dx / 4, xMin + dx / 2, yMin, yMax);
+                        render(xMin + dx / 2, xMin + 3 * dx / 4, yMin, yMax);
+                        render(xMin + 3 * dx / 4, xMax, yMin, yMax);
+                    } else {
+                        render(xMin, xMax, yMin, yMin + dy / 4);
+                        render(xMin, xMax, yMin + dy / 4, yMin + dy / 2);
+                        render(xMin, xMax, yMin + dy / 2, yMin + 3 * dy / 4);
+                        render(xMin, xMax, yMin + 3 * dy / 4, yMax);
+                    }
+                    return;
+                }
+            }
+            //System.out.println("splitting");
+            dx = xMin + dx /2;
+            dy = yMin + dy /2;
+            render(xMin, dx, yMin, dy);
+            render(xMin, dx, dy, yMax);
+            render(dx, xMax, yMin, dy);
+            render(dx, xMax, dy, yMax);
+
+        }
     }
 
 }

@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
  */
 public class ColorSchemes {
     
-    public static final int BLACK_AND_WHITE_SQRT = 2;
+    public static final int BLACK_AND_WHITE_SQRT = 1;
     
     private static final Method[] methods = ColorSchemes.class.getMethods();
     private static final TreeMap<Integer, Integer> colors = new TreeMap<>();
@@ -32,17 +32,9 @@ public class ColorSchemes {
      * where the key of the escape value maps to the appropriate color space;
      */
     public static TreeMap<Integer, Integer> generate(Histogram histogram, int scheme) {
-        try {
-            return (TreeMap<Integer, Integer>) (methods[scheme].invoke(null, histogram));
-        } catch (IllegalAccessException ex) {
-            System.out.println("it happened");
-        } catch (IllegalArgumentException ex) {
-            ex.printStackTrace();
-        } catch (InvocationTargetException ex) {
-            ex.printStackTrace();
-        }
-        System.out.println("NOPE");
-        return null;
+           return bw(histogram);
+        
+
     }
     
     public static TreeMap<Integer, Integer> bw(Histogram histogram) {

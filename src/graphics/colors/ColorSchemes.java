@@ -1,17 +1,11 @@
 package graphics.colors;
 
 import java.awt.Color;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.stream.IntStream;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 /**
  *
  * @author David

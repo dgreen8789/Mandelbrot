@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package math;
 
 import graphics.colors.Histogram;
@@ -42,10 +38,9 @@ public class CalculatorThread extends Thread {
             } catch (InterruptedException ex) {
             }
             for (int i = miniWindow[0]; i < miniWindow[1]; i++) {
-                Arrays.fill(buffer[i], -1);
+                Arrays.fill(buffer[i], miniWindow[2], miniWindow[3], -1);
             }
             render(miniWindow[0], miniWindow[1], miniWindow[2], miniWindow[3]);
-            
         }
     }
 
@@ -140,8 +135,6 @@ public class CalculatorThread extends Thread {
               
             if (buffer[xMax][y] == -1) {
                 buffer[xMax][y] = escape(xCoords[xMax], yCoords[y]);
-              
-
             }
             if (buffer[xMax][y] != val) {
                 return false;
@@ -174,9 +167,12 @@ public class CalculatorThread extends Thread {
         if (testBox(xMin, xMax - 1, yMin, yMax - 1)) {
             //System.out.println("called");
             for (int x = xMin; x < xMax; x++) {
-                //Arrays.fill(buffer[x], yMin, yMax, val);
+                for (int y = yMin; y < yMax; y++) {
+                    buffer[x][y] = val;
+                }
             }
             histogram.increment(val, (yMax - yMin) * (xMax - xMin));
+            
         } else {
             //System.out.println("not called");
             dx = xMax - xMin;

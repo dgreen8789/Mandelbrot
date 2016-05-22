@@ -1,14 +1,5 @@
 package math;
 
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  *
  * @author David
@@ -67,10 +58,10 @@ public class DoubleWindow {
         xCenter -= amt;
     }
      public void shiftUp(double amt){
-        yCenter += amt;
+        yCenter -= amt;
     }
      public void shiftDown(double amt){
-         yCenter -= amt;
+         yCenter += amt;
      }
 
 

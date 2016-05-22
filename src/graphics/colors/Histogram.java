@@ -3,11 +3,7 @@ package graphics.colors;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 /**
  *
  * @author David
@@ -38,16 +34,18 @@ public class Histogram {
             counter.incrementAndGet();
         }
     }
-    public void increment(int point, int amt){
+
+    public void increment(int point, int amt) {
         if (histogram[point].addAndGet(amt) == amt) {
             counter.incrementAndGet();
         }
     }
-    public void decrement(int point){
-        if(histogram[point].decrementAndGet() == 0){
+
+    public void decrement(int point) {
+        if (histogram[point].decrementAndGet() == 0) {
             counter.decrementAndGet();
         }
- 
+
     }
 
     public int[][] toIntArray() {
@@ -62,10 +60,12 @@ public class Histogram {
         return values;
 
     }
-    public String toString(){
-        int[][] z  = toIntArray();
+
+    public String toString() {
+        int[][] z = toIntArray();
         return "\n" + Arrays.toString(z[0]) + "\n" + Arrays.toString(z[1]) + "\n";
     }
+
     public int[][] getAndReset() {
         int[][] z = toIntArray();
         reset();

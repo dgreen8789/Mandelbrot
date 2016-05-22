@@ -2,20 +2,9 @@ package math;
 
 import graphics.colors.Histogram;
 import java.awt.Point;
-import static java.lang.Double.doubleToRawLongBits;
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.util.Arrays;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import sun.misc.DoubleConsts;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
+
 /**
  *
  * @author David
@@ -58,7 +47,7 @@ public class DoubleMandelbrotCalculator {
      * @param data
      * @return
      */
-                       public static void draw(DoubleWindow window) {
+    public static void draw(DoubleWindow window) {
         long start = System.currentTimeMillis();
         System.out.println(window);
         xEpsilon = window.xRange / data.length * 2;

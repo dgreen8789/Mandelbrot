@@ -1,6 +1,6 @@
 package graphics.base;
 
-import graphics.colors.ColorSchemes;
+import graphics.colors.ColorScheme;
 import java.awt.Color;
 import math.DoubleWindow;
 import math.DoubleMandelbrotCalculator;
@@ -24,7 +24,8 @@ public class GraphicsController {
     public static final int WINDOW_COLOR_UPDATE = 5;
     public static final int ANYTHING = 6;
     public static final int MAX_SHIFT_DISTANCE = 10;
-    private int colorScheme = ColorSchemes.BLACK_AND_WHITE_SQRT;
+    private final ColorScheme[] schemes;
+    private int colorScheme;
     private static final int THREAD_COUNT = 4;
     private DoubleWindow window;
     final private int[][] data;
@@ -38,6 +39,7 @@ public class GraphicsController {
         data = new int[width][height];
         img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         DoubleMandelbrotCalculator.initialize(THREAD_COUNT, width, height, data);
+        schemes = ColorScheme.values();
     }
 
     /**
@@ -49,8 +51,8 @@ public class GraphicsController {
      */
     private int pixelShiftDistance = 1;
 
-    private int lastCommand = -1;
-
+    private int lastCommand;
+    
     void render(Graphics2D g, boolean[] mustRender) {
         if (mustRender[ANYTHING]) {
             if (mustRender[WINDOW_ZOOM_UPDATE]) {
@@ -96,9 +98,9 @@ public class GraphicsController {
             }
             if (mustRender[WINDOW_COLOR_UPDATE]) {
                 lastCommand = WINDOW_COLOR_UPDATE;
-                colorScheme = ColorSchemes.getNextScheme(colorScheme);
+                colorScheme = ++colorScheme % schemes.length;
             }
-            colors = ColorSchemes.generate(DoubleMandelbrotCalculator.getHistogram(), colorScheme);
+            colors = ColorScheme.generate(DoubleMandelbrotCalculator.getHistogram(), schemes[colorScheme]);
             color(img, data, colors);
             Arrays.fill(mustRender, false);
         }
@@ -126,7 +128,7 @@ public class GraphicsController {
                     //This is a problem, needs optimization, O(N^2) is BAD
                     //jk its like .1% of processor time lol
                 }
-                // img.setRGB(x, y, mandelbrotData[x][y] > -1 ? Color.RED.getRGB() : Color.BLACK.getRGB());
+//                img.setRGB(x, y, mandelbrotData[x][y] > -1 ? Color.RED.getRGB() : Color.BLACK.getRGB());
             }
         }
         long stop = System.currentTimeMillis();

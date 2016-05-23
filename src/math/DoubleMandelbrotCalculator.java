@@ -179,7 +179,6 @@ public class DoubleMandelbrotCalculator {
     public static void panUp(int distance, DoubleWindow window) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
-
             System.arraycopy(row, 0, row, distance, row.length - distance);
         }
         System.arraycopy(yCoords, 0, yCoords, distance, yCoords.length - distance);

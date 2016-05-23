@@ -1,4 +1,3 @@
-
 package math;
 
 import graphics.colors.Histogram;
@@ -45,9 +44,7 @@ public class CalculatorThread extends Thread {
     }
 
     //variables for the escape algorithm
-    private double xn;
-    private double yn;
-    private double xt;
+    private double xn, yn, xt;
     private int z;
     private final TreeSet<Integer> hashes = new TreeSet<>();
 
@@ -84,7 +81,6 @@ public class CalculatorThread extends Thread {
     }
 
     public boolean testBox(int xMin, int xMax, int yMin, int yMax) {
-        if(xMax - xMin < 2 || yMax - yMin < 2) return false;
         if (buffer[xMin][yMin] == -1) {
             buffer[xMin][yMin] = escape(xCoords[xMin], yCoords[yMin]);
         }
@@ -132,7 +128,7 @@ public class CalculatorThread extends Thread {
             if (buffer[xMin][y] != val) {
                 return false;
             }
-              
+
             if (buffer[xMax][y] == -1) {
                 buffer[xMax][y] = escape(xCoords[xMax], yCoords[y]);
             }
@@ -172,7 +168,7 @@ public class CalculatorThread extends Thread {
                 }
             }
             histogram.increment(val, (yMax - yMin) * (xMax - xMin));
-            
+
         } else {
             //System.out.println("not called");
             dx = xMax - xMin;
@@ -199,8 +195,8 @@ public class CalculatorThread extends Thread {
                 }
             }
             //System.out.println("splitting");
-            dx = xMin + dx /2;
-            dy = yMin + dy /2;
+            dx = xMin + dx / 2;
+            dy = yMin + dy / 2;
             render(xMin, dx, yMin, dy);
             render(xMin, dx, dy, yMax);
             render(dx, xMax, yMin, dy);

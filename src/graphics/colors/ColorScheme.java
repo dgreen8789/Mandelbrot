@@ -58,10 +58,11 @@ public enum ColorScheme {
         int[][] data = histogram.toIntArray();
         double len = data[1].length;
         int[] values = IntStream.range(0, data[1].length).map(x -> rgbaToColorCode(
-                15 + (int)(240 * Math.sqrt(Math.sqrt(x / len))), 
-                (int)(210 * x / len * x / len), 
+                255 - (int)(240 * x / len * x / len * x / len), 
+                255 - (int)(255 * Math.cbrt(x / len)), 
                 0,  
-                255)).toArray(); // figure out this
+                (int)(15 + 240 * (Math.cbrt(x / len))))
+                ).toArray(); // figure out this
         
         for (int i = 0; i < values.length; i++) {
             colors.put(data[0][i], values[i]);

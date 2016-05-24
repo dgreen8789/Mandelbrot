@@ -96,9 +96,7 @@ public class GUI extends Thread {
     private void addListeners() {
         canvas.addMouseMotionListener(controlHandler);
         canvas.addKeyListener(controlHandler);
-        canvas.addFocusListener(controlHandler);
         canvas.addMouseListener(controlHandler);
-        canvas.addMouseWheelListener(controlHandler);
     }
 
     public boolean setFullScreen(JFrame frame) {
@@ -117,14 +115,6 @@ public class GUI extends Thread {
         public void windowClosing(final WindowEvent e) {
             isRunning = false;
         }
-    }
-
-    public void setFPSLimit(int FPSLimit) {
-        this.FPSLimit.set(FPSLimit);
-    }
-
-    public int getFPSLimit() {
-        return FPSLimit.get();
     }
 
     // Screen and buffer stuff
@@ -203,22 +193,6 @@ public class GUI extends Thread {
         g.fillRect(0, 0, width, height);
         graphicsControl.render(g, controlHandler.getInputMask());
 
-    }
-
-    public GraphicsController getGraphicsControl() {
-        return graphicsControl;
-    }
-
-    public Rectangle getBounds() {
-        return this.canvas.getBounds();
-    }
-
-    public Point getMousePosition() {
-        return canvas.getMousePosition();
-    }
-
-    public ControlHandler getControlHandler() {
-        return controlHandler;
     }
 
 }

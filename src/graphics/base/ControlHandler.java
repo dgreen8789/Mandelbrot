@@ -2,22 +2,17 @@ package graphics.base;
 
 import math.DoubleMandelbrotCalculator;
 import math.DoubleWindow;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import javax.swing.event.MouseInputListener;
 
 /**
  *
  * @author David
  */
-public class ControlHandler implements MouseInputListener, KeyListener, WindowListener, FocusListener, MouseWheelListener {
+public class ControlHandler implements MouseInputListener, KeyListener  {
 
     private final char UP_KEY = 'W';
     private final char DOWN_KEY = 'S';
@@ -107,46 +102,6 @@ public class ControlHandler implements MouseInputListener, KeyListener, WindowLi
 
     @Override
     public void mouseExited(MouseEvent e) {
-    }
-
-    @Override
-    public void windowOpened(WindowEvent e) {
-    }
-
-    @Override
-    public void windowClosing(WindowEvent e) {
-    }
-
-    @Override
-    public void windowClosed(WindowEvent e) {
-    }
-
-    @Override
-    public void windowIconified(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeiconified(WindowEvent e) {
-    }
-
-    @Override
-    public void windowActivated(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeactivated(WindowEvent e) {
-    }
-
-    @Override
-    public void focusGained(FocusEvent e) {
-    }
-
-    @Override
-    public void focusLost(FocusEvent e) {
-    }
-
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
     }
 
     public void setWindow(DoubleWindow window) {

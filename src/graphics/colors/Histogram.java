@@ -60,6 +60,7 @@ public class Histogram {
 
     }
 
+    @Override
     public String toString() {
         int[][] z = toIntArray();
         return "\n" + Arrays.toString(z[0]) + "\n" + Arrays.toString(z[1]) + "\n";

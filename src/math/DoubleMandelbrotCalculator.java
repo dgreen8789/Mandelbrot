@@ -3,8 +3,6 @@ package math;
 import graphics.colors.Histogram;
 import java.awt.Point;
 
-
-
 /**
  *
  * @author David
@@ -151,7 +149,9 @@ public class DoubleMandelbrotCalculator {
     public static void panDown(int distance, DoubleWindow window) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
-
+            for (int i = 0; i < distance; i++) {
+                histogram.decrement(row[i]);
+            }
             System.arraycopy(row, distance, row, 0, row.length - distance);
         }
         System.arraycopy(yCoords, distance, yCoords, 0, yCoords.length - distance);
@@ -179,6 +179,9 @@ public class DoubleMandelbrotCalculator {
     public static void panUp(int distance, DoubleWindow window) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
+            for (int i = row.length - distance; i < row.length; i++) {
+                histogram.decrement(row[i]);
+            }
             System.arraycopy(row, 0, row, distance, row.length - distance);
         }
         System.arraycopy(yCoords, 0, yCoords, distance, yCoords.length - distance);
@@ -211,8 +214,8 @@ public class DoubleMandelbrotCalculator {
     }
 
     private static void runCalculations(CalculatorThread[] threads, long waitTime) {
-        for (int i = 0; i < threads.length; i++) {
-            threads[i].interrupt();
+        for (CalculatorThread thread : threads) {
+            thread.interrupt();
         }
         try {
             Thread.sleep(waitTime);

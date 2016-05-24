@@ -1,6 +1,8 @@
 package graphics.colors;
 
+import java.awt.Color;
 import java.util.TreeMap;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 /**
@@ -9,11 +11,9 @@ import java.util.stream.IntStream;
  */
 public enum ColorScheme {
 
-    BLACK_AND_WHITE_SQRT,
-    FIRE
-    
-    
-    ;
+    BLACK_AND_WHITE,
+    FIRE,
+    BLUE;
     private static final TreeMap<Integer, Integer> colors = new TreeMap<>();
 
     /**
@@ -30,11 +30,14 @@ public enum ColorScheme {
         long start = System.currentTimeMillis();
         colors.clear();
         switch (scheme) {
-            case BLACK_AND_WHITE_SQRT:
-                bw(histogram);
+            case BLACK_AND_WHITE:
+                bw(histogram.toIntArray());
                 break;
             case FIRE:
-                fire(histogram);
+                fire(histogram.toIntArray());
+                break;
+            case BLUE:
+                blue(histogram.toIntArray());
                 break;
         }
         long stop = System.currentTimeMillis();
@@ -42,32 +45,34 @@ public enum ColorScheme {
         return colors;
     }
 
-    public static void bw(Histogram histogram) {
-        int[][] data = histogram.toIntArray();
-        //System.out.println(data[1].length);
+    public static void bw(int[][] data) {
         double len = data[1].length;
-        int[] values = IntStream.range(0, data[1].length)
-                .map(x -> rgbaToColorCode(255, 255, 255, (int) (255 * Math.sqrt(x / len)))).toArray();
-        //System.out.println(Arrays.toString(values));
-        for (int i = 0; i < values.length; i++) {
-            colors.put(data[0][i], values[i]);
-        }
-        //System.out.println(colors);
+        IntStream.range(0, data[1].length).forEach(x -> colors.put(data[0][x],
+                rgbaToColorCode(255, 255, 255, (int) (255 * Math.sqrt(x / len)))));
     }
-    public static void fire(Histogram histogram){
-        int[][] data = histogram.toIntArray();
+
+    public static void fire(int[][] data) {
         double len = data[1].length;
-        int[] values = IntStream.range(0, data[1].length).map(x -> rgbaToColorCode(
-                255 - (int)(240 * x / len * x / len * x / len), 
-                255 - (int)(255 * Math.cbrt(x / len)), 
-                0,  
-                (int)(15 + 240 * (Math.cbrt(x / len))))
-                ).toArray(); // figure out this
-        
-        for (int i = 0; i < values.length; i++) {
-            colors.put(data[0][i], values[i]);
-        }
+        IntStream.range(0, data[1].length).asDoubleStream().forEach(x -> colors.put(data[0][(int) x], rgbaToColorCode(
+                255,
+                (int) (255 * Math.pow(x / len, 1 / Math.E - 1 / (10 * Math.PI))),
+                0,
+                (int) (20 + 230 * (Math.cbrt(x / len))))
+        ));
+        colors.put(colors.lastKey(), 0);
     }
+    private static void blue(int[][] data) {
+        double len = data[1].length;
+        double constant = Math.pow(Math.E / Math.PI, 9);
+        IntStream.range(0, data[1].length).asDoubleStream().forEach(x -> colors.put(data[0][(int) x], rgbaToColorCode(
+                (int) (255 * Math.pow(x / len, constant)),
+                0,
+                255,
+                (int) (20 + 230 * (Math.cbrt(x / len))))
+        ));
+        colors.put(colors.lastKey(), 0);
+    }
+
     private static int rgbaToColorCode(int r, int g, int b, int a) {
         return ((a & 0xFF) << 24)
                 | ((r & 0xFF) << 16)

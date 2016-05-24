@@ -25,12 +25,10 @@ public class ControlHandler implements MouseInputListener, KeyListener, WindowLi
     private final char RIGHT_KEY = 'D';
     private final char COLOR_KEY = 'C';
     private DoubleWindow window;
-    private final GUI GUI;
 
-    private final boolean[] InputMask = new boolean[7];
+    private final boolean[] InputMask = new boolean[8];
 
     public ControlHandler(GUI gui) {
-        GUI = gui;
     }
 
     @Override
@@ -66,6 +64,7 @@ public class ControlHandler implements MouseInputListener, KeyListener, WindowLi
             case COLOR_KEY:
                 InputMask[GraphicsController.WINDOW_COLOR_UPDATE] = true;
                 break;
+            
         }
         InputMask[GraphicsController.ANYTHING] = true;
 

@@ -2,29 +2,29 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="2">
         <file>
-            <url>src/graphics/base/GraphicsController.java</url>
-            <bookmark id="2">
+            <url>src/graphics/colors/Histogram.java</url>
+            <bookmark id="1">
                 <name/>
-                <line>38</line>
+                <line>17</line>
                 <key/>
             </bookmark>
         </file>
         <file>
-            <url>src/graphics/colors/Histogram.java</url>
-            <bookmark id="1">
+            <url>src/graphics/base/GraphicsController.java</url>
+            <bookmark id="2">
                 <name/>
-                <line>21</line>
+                <line>47</line>
                 <key/>
             </bookmark>
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/david.green/Documents/NetBeansProjects/Mandelbrot/src/graphics/colors/Histogram.java</file>
-            <file>file:/C:/Users/david.green/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/GUI.java</file>
-            <file>file:/C:/Users/david.green/Documents/NetBeansProjects/Mandelbrot/src/math/CalculatorThread.java</file>
-            <file>file:/C:/Users/david.green/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/GraphicsController.java</file>
-            <file>file:/C:/Users/david.green/Documents/NetBeansProjects/Mandelbrot/src/math/DoubleMandelbrotCalculator.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/ControlHandler.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/GUI.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/graphics/colors/ColorScheme.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/Init.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/GraphicsUtilities.java</file>
         </group>
     </open-files>
 </project-private>

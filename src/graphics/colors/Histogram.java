@@ -22,33 +22,32 @@ public class Histogram {
         counter = new AtomicInteger(0);
     }
 
-    public void reset() {
+    public synchronized void reset() {
         for (AtomicInteger dataPoint : histogram) {
             dataPoint.set(0);
         }
         counter.set(0);
     }
 
-    public void increment(int point) {
+    public synchronized void increment(int point) {
         if (histogram[point].incrementAndGet() == 1) {
             counter.incrementAndGet();
         }
     }
 
-    public void increment(int point, int amt) {
+    public synchronized void increment(int point, int amt) {
         if (histogram[point].addAndGet(amt) == amt) {
             counter.incrementAndGet();
         }
     }
 
-    public void decrement(int point) {
-        if (histogram[point].decrementAndGet() == 0) {
+    public synchronized void decrement(int point) {
+        if (histogram[point].decrementAndGet() < 0) {
             counter.decrementAndGet();
         }
-
     }
 
-    public int[][] toIntArray() {
+    public synchronized int[][] toIntArray() {
         int[][] values = new int[2][counter.get()];
         int vCount = 0;
         for (int i = 0; i < histogram.length; i++) {
@@ -66,7 +65,7 @@ public class Histogram {
         return "\n" + Arrays.toString(z[0]) + "\n" + Arrays.toString(z[1]) + "\n";
     }
 
-    public int[][] getAndReset() {
+    public synchronized int[][] getAndReset() {
         int[][] z = toIntArray();
         reset();
         return z;

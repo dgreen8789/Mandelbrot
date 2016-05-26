@@ -1,15 +1,18 @@
 
+import graphics.base.GUI;
+
+
 
 /**
  *
  * @author David
  */
-public class test {
+public class Main {
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println((float)(int)(56.67));
+        GUI gui = new GUI(30, true);
     }
 }

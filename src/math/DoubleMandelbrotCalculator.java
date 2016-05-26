@@ -93,9 +93,7 @@ public class DoubleMandelbrotCalculator {
             data[i] = data[i + distance];
         }
         for (; i < data.length; i++) {
-            for (int dp : data[i]) {
-                histogram.decrement(dp);
-            }
+          
             data[i] = new int[data[0].length];
             xCoords[i] = xCoords[i - 1] + xEpsilon;
         }
@@ -123,9 +121,7 @@ public class DoubleMandelbrotCalculator {
             data[i + distance] = data[i];
         }
         for (i = distance - 1; i >= 0; i--) {
-            for (int dp : data[i]) {
-                histogram.decrement(dp);
-            }
+     
             data[i] = new int[data[0].length];
             xCoords[i] = xCoords[i + 1] - xEpsilon;
         }
@@ -149,9 +145,7 @@ public class DoubleMandelbrotCalculator {
     public static void panDown(int distance, DoubleWindow window) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
-            for (int i = 0; i < distance; i++) {
-                histogram.decrement(row[i]);
-            }
+       
             System.arraycopy(row, distance, row, 0, row.length - distance);
         }
         System.arraycopy(yCoords, distance, yCoords, 0, yCoords.length - distance);
@@ -179,9 +173,7 @@ public class DoubleMandelbrotCalculator {
     public static void panUp(int distance, DoubleWindow window) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
-            for (int i = row.length - distance; i < row.length; i++) {
-                histogram.decrement(row[i]);
-            }
+      
             System.arraycopy(row, 0, row, distance, row.length - distance);
         }
         System.arraycopy(yCoords, 0, yCoords, distance, yCoords.length - distance);

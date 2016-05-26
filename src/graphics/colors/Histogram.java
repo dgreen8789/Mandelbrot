@@ -41,11 +41,6 @@ public class Histogram {
         }
     }
 
-    public synchronized void decrement(int point) {
-        if (histogram[point].decrementAndGet() < 0) {
-            counter.decrementAndGet();
-        }
-    }
 
     public synchronized int[][] toIntArray() {
         int[][] values = new int[2][counter.get()];

@@ -1,15 +1,13 @@
 package graphics.base;
 
 
-import math.DoubleWindow;
+import math.Window;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.event.WindowAdapter;
@@ -20,6 +18,7 @@ import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
+import math.DoubleNumberType;
 
 public class GUI extends Thread {
 
@@ -39,8 +38,8 @@ public class GUI extends Thread {
             .getDefaultScreenDevice()
             .getDefaultConfiguration();
     private final FPSCounter fpsCounter = new FPSCounter(FPS);
-    private final GraphicsController graphicsControl;
-    private final ControlHandler controlHandler;
+    public final GraphicsController graphicsControl;
+    public final ControlHandler controlHandler;
 
     // create a hardware accelerated image
     public final BufferedImage create(final int width, final int height, final boolean alpha) {
@@ -147,8 +146,11 @@ public class GUI extends Thread {
 
     public void run() {
         //String str ="Window{xCenter=0.08039514558823516, yCenter=0.6253787604166666, xRange=1.7499999999999997E-7, yRange=1.0000000000000002E-7}";
-        DoubleWindow window = //DoubleWindow.fromString(str);
-                new DoubleWindow(-.75, 0, 1.75, 1);
+        Window window = //DoubleWindow.fromString(str);
+                new Window(new DoubleNumberType(-.75),
+                        new DoubleNumberType(0),
+                        new DoubleNumberType(1.75),
+                        new DoubleNumberType(1));
         graphicsControl.setWindow(window);
         controlHandler.setWindow(window);
         controlHandler.forceUpdate();

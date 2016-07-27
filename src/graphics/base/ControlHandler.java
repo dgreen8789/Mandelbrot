@@ -1,12 +1,12 @@
 package graphics.base;
 
-import math.DoubleMandelbrotCalculator;
-import math.DoubleWindow;
+import math.MandelbrotCalculator;
+import math.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
 import javax.swing.event.MouseInputListener;
+import math.NumberType;
 
 /**
  *
@@ -19,7 +19,7 @@ public class ControlHandler implements MouseInputListener, KeyListener  {
     private final char LEFT_KEY = 'A';
     private final char RIGHT_KEY = 'D';
     private final char COLOR_KEY = 'C';
-    private DoubleWindow window;
+    private volatile Window window;
 
     private final boolean[] InputMask = new boolean[8];
 
@@ -84,7 +84,7 @@ public class ControlHandler implements MouseInputListener, KeyListener  {
     public void mouseReleased(MouseEvent e) {
 
         if (e.getButton() == MouseEvent.BUTTON1) {
-            double[] coords = DoubleMandelbrotCalculator.coordinateByPoint(e.getPoint(), window);
+            NumberType[] coords = MandelbrotCalculator.coordinateByPoint(e.getPoint(), window);
             window.zoomIn(coords[0], coords[1]);
             InputMask[GraphicsController.WINDOW_ZOOM_UPDATE] = true;
         }
@@ -104,7 +104,7 @@ public class ControlHandler implements MouseInputListener, KeyListener  {
     public void mouseExited(MouseEvent e) {
     }
 
-    public void setWindow(DoubleWindow window) {
+    public void setWindow(Window window) {
         this.window = window;
     }
 

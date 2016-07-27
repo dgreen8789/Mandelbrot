@@ -5,7 +5,7 @@ import graphics.colors.Histogram;
 import static java.lang.Double.doubleToRawLongBits;
 import java.util.Arrays;
 import java.util.TreeSet;
-import static math.DoubleMandelbrotCalculator.MAX_ITERATIONS;
+import static math.MandelbrotCalculator.MAX_ITERATIONS;
 
 /**
  *
@@ -15,12 +15,12 @@ public class CalculatorThread extends Thread {
 
     private final Histogram histogram;
     private final int[][] buffer;
-    private final double[] xCoords;
-    private final double[] yCoords;
+    private volatile  NumberType[] xCoords;
+    private volatile  NumberType[] yCoords;
     private int miniWindow[];
     private int val;
 
-    public CalculatorThread(Histogram histogram, double[] xCoords, double[] yCoords, int[][] buffer) {
+    public CalculatorThread(Histogram histogram, NumberType[] xCoords, NumberType[] yCoords, int[][] buffer) {
         this.histogram = histogram;
         this.xCoords = xCoords;
         this.yCoords = yCoords;
@@ -43,41 +43,17 @@ public class CalculatorThread extends Thread {
         }
     }
 
-    //variables for the escape algorithm
-    private double xn, yn, xt;
-    private int z;
+    //hashlist for the escape algorithm
     private final TreeSet<Integer> hashes = new TreeSet<>();
 
-    private int escape(double x_curr, double y_curr) {
-
-        xn = x_curr;
-        yn = y_curr;
+    private int escape(NumberType x_curr, NumberType y_curr) {
         hashes.clear();
-        z = 0;
-        while (z < MAX_ITERATIONS - 1) {
-            if (xn * xn + yn * yn > 4) {
-                //System.out.println("problem");
-                return z;
-            }
-            if (!hashes.add(37 * hashCode(xn) + hashCode(yn))) {
-                //System.out.println("saved " + (MAX_ITERATIONS - z));
-                return MAX_ITERATIONS;
-            }
-            xt = xn * xn - yn * yn + x_curr;
-            yn = 2 * xn * yn + y_curr;
-            xn = xt;
-            z++;
-        }
-        return MAX_ITERATIONS;
+        // System.out.println(x_curr);
+        return x_curr.escape(x_curr, y_curr, hashes, MAX_ITERATIONS);
     }
 
     public void setMiniWindow(int[] minWindow) {
         this.miniWindow = minWindow;
-    }
-
-    public static int hashCode(double value) {
-        long bits = doubleToRawLongBits(value);
-        return (int) (bits ^ (bits >>> 32));
     }
 
     public int testBox(int xMin, int xMax, int yMin, int yMax) {
@@ -181,7 +157,8 @@ public class CalculatorThread extends Thread {
             histogram.increment(val, (yMax - yMin) * (xMax - xMin));
 
         } else //System.out.println("not called");
-         if (dVal > dx * dy * 10) {
+        {
+            if (dVal > dx * dy * 10) {
                 iteratePlain(xMin, xMax, yMin, yMax);
             } else if (a || b) {
                 if (a && b) {
@@ -206,5 +183,15 @@ public class CalculatorThread extends Thread {
                 render(dx, xMax, yMin, dy);
                 render(dx, xMax, dy, yMax);
             }
+        }
     }
+
+    public void setxCoords(NumberType[] xCoords) {
+        this.xCoords = xCoords;
+    }
+
+    public void setyCoords(NumberType[] yCoords) {
+        this.yCoords = yCoords;
+    }
+    
 }

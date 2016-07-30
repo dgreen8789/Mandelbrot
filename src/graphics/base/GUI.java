@@ -1,6 +1,5 @@
 package graphics.base;
 
-
 import math.Window;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -14,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JFrame;
@@ -41,6 +41,7 @@ public class GUI extends Thread {
     public final GraphicsController graphicsControl;
     public final ControlHandler controlHandler;
 
+
     // create a hardware accelerated image
     public final BufferedImage create(final int width, final int height, final boolean alpha) {
         return config.createCompatibleImage(width, height, alpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE);
@@ -66,7 +67,7 @@ public class GUI extends Thread {
         // Canvas
         canvas = new Canvas(config);
         canvas.setSize(width, height);
-       // System.out.println(canvas.getSize());
+        // System.out.println(canvas.getSize());
         frame.add(canvas, 0);
 
         // Background & Buffer
@@ -146,7 +147,8 @@ public class GUI extends Thread {
 
     public void run() {
         //String str ="Window{xCenter=0.08039514558823516, yCenter=0.6253787604166666, xRange=1.7499999999999997E-7, yRange=1.0000000000000002E-7}";
-        Window window = //DoubleWindow.fromString(str);
+        Window window
+                = //DoubleWindow.fromString(str);
                 new Window(new DoubleNumberType(-.75),
                         new DoubleNumberType(0),
                         new DoubleNumberType(1.75),
@@ -176,6 +178,7 @@ public class GUI extends Thread {
                 renderApplication(backgroundGraphics, canvas.getWidth(), canvas.getHeight()); // this calls your draw method
                 // thingy
                 bg.drawImage(background, 0, 0, null);
+
                 bg.dispose();
             } while (!updateScreen());
             fpsCounter.incrementFPSCount();

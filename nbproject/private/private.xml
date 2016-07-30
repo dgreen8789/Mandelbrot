@@ -20,9 +20,12 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/CalculatorThread.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/GraphicsController.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/DoubleMandelbrotCalculator.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/main/test.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/DoubleDoubleNumberType.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/MandelbrotCalculator.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/Main.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/DoubleNumberType.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/QuadDoubleNumberType.java</file>
         </group>
     </open-files>
 </project-private>

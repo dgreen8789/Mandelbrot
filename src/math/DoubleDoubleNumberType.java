@@ -1,7 +1,6 @@
 package math;
 
 import java.util.Arrays;
-import java.util.Random;
 import java.util.TreeSet;
 
 /**
@@ -39,10 +38,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     public static final double HALF_EPSILON = 1.1102230246251565E-16;
     public static final double EPSILON = 1.232595164407831E-32;
 
-
     public static final DoubleDoubleNumberType ZERO = new DoubleDoubleNumberType(0);
     public static final DoubleDoubleNumberType ONE = new DoubleDoubleNumberType(1);
     public static final DoubleDoubleNumberType TEN = new DoubleDoubleNumberType(10);
+    public static final int MAX_ZOOM = 29;
     public double hi;
     public double lo;
 
@@ -83,7 +82,6 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.hi = dd.hi;
         this.lo = dd.lo;
     }
-
 
     // ***********************************************************************//
     // ************************** Other functions ****************************//
@@ -2003,7 +2001,12 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
 
     @Override
     public NumberType toNextSystem() {
-        throw new UnsupportedOperationException("NOPE");
+        return new QuadDoubleNumberType(hi, lo, 0, 0);
+    }
+
+    @Override
+    public NumberType toPreviousSystem() {
+        return new DoubleNumberType(hi);
     }
 
 }

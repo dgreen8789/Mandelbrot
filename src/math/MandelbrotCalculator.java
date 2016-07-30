@@ -10,7 +10,8 @@ import java.lang.reflect.Array;
  */
 public class MandelbrotCalculator {
 
-    public static int MAX_ITERATIONS = 8192;
+    public static int MAX_ITERATIONS = 4096;
+
     private static final int ZOOM_WAIT_TIME = 50;
     private static final int PAN_WAIT_TIME = 5;
     private static NumberType[] xCoords;
@@ -21,11 +22,12 @@ public class MandelbrotCalculator {
     private static NumberType ZERO;
     private static NumberType ONE;
     private static NumberType TEN;
+    private static int maxZoom;
     private static Histogram histogram;
     private static int[][] data;
     static CalculatorThread[] threads;
 
-    public static final Class[] NUMBER_SYSTEMS = new Class[]{DoubleNumberType.class, DoubleDoubleNumberType.class};
+    public static final Class[] NUMBER_SYSTEMS = new Class[]{DoubleNumberType.class, DoubleDoubleNumberType.class, QuadDoubleNumberType.class};
     private static int currentSystem;
 
     private static Window changeNumberSystem(Class numberType, Window window) {
@@ -54,6 +56,7 @@ public class MandelbrotCalculator {
             ZERO = (NumberType) numberType.getDeclaredField("ZERO").get(null);
             ONE = (NumberType) numberType.getDeclaredField("ONE").get(null);
             TEN = (NumberType) numberType.getDeclaredField("TEN").get(null);
+            maxZoom = numberType.getDeclaredField("MAX_ZOOM").getInt(null);
         } catch (NoSuchFieldException ex) {
             System.out.println("Numerical fields not found for numbertype: " + numberType);
         } catch (SecurityException ex) {
@@ -63,6 +66,7 @@ public class MandelbrotCalculator {
         } catch (IllegalAccessException ex) {
             System.out.println("Rando illegal access exception");
         }
+        System.out.println("Switched to number system " + numberType.getSimpleName());
     }
 
     public static void initialize(int numThreads, int width, int height, int[][] data, int numberType) {
@@ -93,7 +97,7 @@ public class MandelbrotCalculator {
      */
     public static Window draw(Window window) {
         long start = System.currentTimeMillis();
-        if (window.getZoomLevel() > 12) {
+        if (window.getZoomLevel() > maxZoom ) {
             System.out.println("Precision fail imminent, ");
             if (currentSystem < NUMBER_SYSTEMS.length - 1) {
                 currentSystem = (currentSystem == NUMBER_SYSTEMS.length - 1 ? currentSystem : currentSystem + 1);
@@ -270,5 +274,7 @@ public class MandelbrotCalculator {
         }
         while (calculating(threads));
     }
-
+    
+    
+    
 }

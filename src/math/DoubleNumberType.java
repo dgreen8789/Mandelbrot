@@ -17,7 +17,7 @@ public class DoubleNumberType implements NumberType {
     public static final DoubleNumberType ZERO = new DoubleNumberType(0);
     public static final DoubleNumberType ONE = new DoubleNumberType(1);
     public static final DoubleNumberType TEN = new DoubleNumberType(10);
-
+    public static final int MAX_ZOOM = 13;
     double u;
 
     public DoubleNumberType(double u) {
@@ -140,6 +140,11 @@ public class DoubleNumberType implements NumberType {
     
     public String toString() {
         return "" + u;
+    }
+
+    @Override
+    public NumberType toPreviousSystem() {
+        return new DoubleNumberType(u);
     }
 
 }

@@ -35,6 +35,7 @@ public abstract interface NumberType {
 
     public NumberType mult2();
 
+    @Override
     public String toString();
 
     public abstract int compareTo(int i);
@@ -43,4 +44,6 @@ public abstract interface NumberType {
     public abstract int hashCode();
 
     public abstract NumberType toNextSystem();
+    
+    public abstract NumberType toPreviousSystem();
 }

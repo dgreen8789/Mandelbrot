@@ -17,27 +17,57 @@ public strictfp class QuadDoubleNumberType implements NumberType {
 
     public static final int MAX_ZOOM = 200;
 
-    private static final double EPSILON_0 = Math.pow(2, -52.0);
-    private static final double EPSILON_1 = Math.pow(2, -103.0);
-    private static final double EPSILON_2 = Math.pow(2, -154.0);
-    private static final double EPSILON_3 = 0;
+    private static final double EPSILON = Math.pow(2, -51.0);
+    private static final double EPSILON_2 = Math.pow(2, -102.0);
+    private static final double EPSILON_3 = Math.pow(2, -153.0);
 
-    public static final QuadDoubleNumberType ZERO = new QuadDoubleNumberType(0, EPSILON_1, EPSILON_2, EPSILON_3);
-    public static final QuadDoubleNumberType ONE = new QuadDoubleNumberType(1.0, EPSILON_1, EPSILON_2, EPSILON_3);
-    public static final QuadDoubleNumberType TEN = new QuadDoubleNumberType(10.0, EPSILON_1, EPSILON_2, EPSILON_3);
+    public static final QuadDoubleNumberType ZERO = new QuadDoubleNumberType(0, 0, 0, 0);
+    public static final QuadDoubleNumberType ONE = new QuadDoubleNumberType(1.0, EPSILON, EPSILON_2, EPSILON_3);
+    public static final QuadDoubleNumberType TEN = new QuadDoubleNumberType(10.0, EPSILON, EPSILON_2, EPSILON_3);
 
     public QuadDoubleNumberType(double a, double b, double c, double d) {
         this.a0 = a;
-        this.a1 = b == 0 ? EPSILON_1 : b;
-        this.a2 = c == 0 ? EPSILON_2 : c;
-        this.a3 = d == 0 ? EPSILON_3 : d;
-        norm();
+        this.a1 = b;
+        this.a2 = c;
+        this.a3 = d;
+        //System.out.println(debugString());
+        //norm();
     }
 
     private void norm() {
-        //if (a3) {
-        //    
-        //}
+        System.out.println("Norm");
+        System.out.printf("(%s, %s, %s, %s)",
+                a0, a1, a2, a3);
+        double ulp = Math.ulp(a0);
+        if (a1 > ulp) {
+            twoSum(a0, a1);
+            a0 = r0;
+            a1 = r1;
+        }
+        if (a1 == 0) {
+            a1 = ulp / 2;
+        }
+        ulp = Math.ulp(a1);
+        if (a2 > ulp) {
+            twoSum(a1, a2);
+            a1 = r0;
+            a2 = r1;
+        }
+        if (a2 == 0) {
+            a2 = ulp / 2;
+        }
+        ulp = Math.ulp(a2);
+        if (a3 > ulp) {
+            twoSum(a2, a3);
+            a1 = r0;
+            a2 = r1;
+        }
+        if (a3 == 0) {
+            a3 = ulp / 2;
+        }
+        System.out.printf(" ----> (%s, %s, %s, %s)\n\n",
+                a0, a1, a2, a3);
+
     }
 
     //Helper methods
@@ -88,7 +118,6 @@ public strictfp class QuadDoubleNumberType implements NumberType {
         r1 = ((ahi * bhi - p) + ahi * blo + alo * bhi) + alo * blo;
 
     }
-
 
     private QuadDoubleNumberType renormalize(double a0, double a1, double a2, double a3, double a4) {
         double s, e, t0, t1, t2, t3, t4;
@@ -148,7 +177,8 @@ public strictfp class QuadDoubleNumberType implements NumberType {
 //        System.out.printf("(%.3f, %.3f, %.3f, %.3f, %.3f) ----> (%.3f, %.3f, %.3f, %.3f)\n",
 //                a0, a1, a2, a3, a4, b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
 //        System.out.println("");
-        return new QuadDoubleNumberType(b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
+        QuadDoubleNumberType b = new QuadDoubleNumberType(b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
+        return b;
     }
 
     private void negSelf() {
@@ -532,7 +562,7 @@ public strictfp class QuadDoubleNumberType implements NumberType {
         }
         return true;
     }
-    
+
     @Override
     public NumberType toNextSystem() {
         throw new UnsupportedOperationException("NOPE");
@@ -559,6 +589,15 @@ public strictfp class QuadDoubleNumberType implements NumberType {
 
     private long longValue() {
         return (long) a0;
+    }
+
+    private String debugString() {
+        String str = "";
+        str += "Value: " + a0 + "\tulp: " + Math.ulp(a0) + "   (2^" + Math.log(Math.ulp(a0)) / Math.log(2) + ")";
+        str += "Value: " + a1 + "\tulp: " + Math.ulp(a1) + "   (2^" + Math.log(Math.ulp(a1)) / Math.log(2) + ")";
+        str += "Value: " + a2 + "\tulp: " + Math.ulp(a2) + "   (2^" + Math.log(Math.ulp(a2)) / Math.log(2) + ")";
+        str += "Value: " + a3 + "\tulp: " + Math.ulp(a3) + "   (2^" + Math.log(Math.ulp(a3)) / Math.log(2) + ")";
+        return str;
     }
 
 }

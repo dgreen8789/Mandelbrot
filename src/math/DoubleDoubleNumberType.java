@@ -87,7 +87,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     // ************************** Other functions ****************************//
     // ***********************************************************************//
     @Override
-    public String toString() {
+    public String toString(){
+        return toString(10);
+    }
+    public String toString(int numDigits) {
         if (this.hi != this.hi) {
             return "NaN";
         }
@@ -97,7 +100,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         if (this.hi <= DoubleDoubleNumberType.NEGATIVE_INFINITY) {
             return "-Infinity";
         }
-        return "dd" + DoubleDoubleNumberType.sciString(this, 10);
+        return "dd" + DoubleDoubleNumberType.sciString(this, 10).substring(numDigits);
     }
 
     public static String sciString(DoubleDoubleNumberType dd, int base) {

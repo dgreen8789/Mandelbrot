@@ -11,69 +11,30 @@ import java.util.TreeSet;
  *
  * @author David
  */
-public strictfp class QuadDoubleNumberType implements NumberType {
+public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
 
     private double a0, a1, a2, a3, r0, r1, r2;
 
     public static final int MAX_ZOOM = 200;
 
-    private static final double EPSILON = Math.pow(2, -51.0);
-    private static final double EPSILON_2 = Math.pow(2, -102.0);
-    private static final double EPSILON_3 = Math.pow(2, -153.0);
-
+   
     public static final QuadDoubleNumberType ZERO = new QuadDoubleNumberType(0, 0, 0, 0);
-    public static final QuadDoubleNumberType ONE = new QuadDoubleNumberType(1.0, EPSILON, EPSILON_2, EPSILON_3);
-    public static final QuadDoubleNumberType TEN = new QuadDoubleNumberType(10.0, EPSILON, EPSILON_2, EPSILON_3);
+    public static final QuadDoubleNumberType ONE = new QuadDoubleNumberType(1.0, 0, 0, 0);
+    public static final QuadDoubleNumberType TEN = new QuadDoubleNumberType(10.0, 0, 0, 0);
 
     public QuadDoubleNumberType(double a, double b, double c, double d) {
         this.a0 = a;
         this.a1 = b;
         this.a2 = c;
         this.a3 = d;
-        //System.out.println(debugString());
-        //norm();
-    }
-
-    private void norm() {
-        System.out.println("Norm");
-        System.out.printf("(%s, %s, %s, %s)",
-                a0, a1, a2, a3);
-        double ulp = Math.ulp(a0);
-        if (a1 > ulp) {
-            twoSum(a0, a1);
-            a0 = r0;
-            a1 = r1;
-        }
-        if (a1 == 0) {
-            a1 = ulp / 2;
-        }
-        ulp = Math.ulp(a1);
-        if (a2 > ulp) {
-            twoSum(a1, a2);
-            a1 = r0;
-            a2 = r1;
-        }
-        if (a2 == 0) {
-            a2 = ulp / 2;
-        }
-        ulp = Math.ulp(a2);
-        if (a3 > ulp) {
-            twoSum(a2, a3);
-            a1 = r0;
-            a2 = r1;
-        }
-        if (a3 == 0) {
-            a3 = ulp / 2;
-        }
-        System.out.printf(" ----> (%s, %s, %s, %s)\n\n",
-                a0, a1, a2, a3);
 
     }
+
 
     //Helper methods
     private void quickTwoSum(double a, double b) {
         r0 = a + b;
-        r1 = (b - (r1 - a));
+        r1 = (b - (r0 - a));
     }
 
     private void twoSum(double a, double b) {
@@ -120,25 +81,59 @@ public strictfp class QuadDoubleNumberType implements NumberType {
     }
 
     private QuadDoubleNumberType renormalize(double a0, double a1, double a2, double a3, double a4) {
-        double s, e, t0, t1, t2, t3, t4;
+        double s, e, t0, t1, t2, t3, t4, a0r, a1r, a2r, a3r, ulp;
         int k;
         double[] b_arr = new double[4];
-        twoSum(a3, a4);
+        a0r = a1r = a2r = a3r = 0; 
+        if(a0 == 0){
+            a0r = a0 = 1.0;
+        }
+        ulp = Math.ulp(a0);
+        if(a1 == 0){
+            a1r = a1 = ulp / 2;
+        }else if(a1 > ulp){
+            s = (a1 / ulp) * ulp;
+            a0 += s;
+            a1 -= s; 
+        }
+        ulp = Math.ulp(a1);
+        if(a2 == 0){
+            a2r = a2 = ulp / 2;
+        }else if(a2 > ulp){
+            s = (a2 / ulp) * ulp;
+            a1 += s;
+            a2 -= s; 
+        }
+        ulp = Math.ulp(a2);
+        if(a3 == 0){
+            a3r = a3 = ulp / 2;
+        }else if(a3 > ulp){
+            s = (a3 / ulp) * ulp;
+            a2 += s;
+            a3 -= s; 
+        }
+        ulp = Math.ulp(a3);
+       if(a4 > ulp){
+            s = (a4 / ulp) * ulp;
+            a3 += s;
+            a4 -= s; 
+       }
+        quickTwoSum(a3, a4);
         s = r0;
         t4 = r1;
-        twoSum(a2, s);
+        quickTwoSum(a2, s);
         s = r0;
         t3 = r1;
-        twoSum(a1, s);
+        quickTwoSum(a1, s);
         s = r0;
         t2 = r1;
-        twoSum(a0, s);
+        quickTwoSum(a0, s);
         s = t0 = r0;
         t1 = r1;
         k = 0;
 
         //begin unrolled for loop
-        twoSum(s, t1);
+        quickTwoSum(s, t1);
         s = r0;
         e = r1;
         if (e != 0) {
@@ -147,7 +142,7 @@ public strictfp class QuadDoubleNumberType implements NumberType {
             k++;
         }
 
-        twoSum(s, t2);
+        quickTwoSum(s, t2);
         s = r0;
         e = r1;
         if (e != 0) {
@@ -156,7 +151,7 @@ public strictfp class QuadDoubleNumberType implements NumberType {
             k++;
         }
 
-        twoSum(s, t3);
+        quickTwoSum(s, t3);
         s = r0;
         e = r1;
         if (e != 0) {
@@ -165,7 +160,7 @@ public strictfp class QuadDoubleNumberType implements NumberType {
             k++;
         }
 
-        twoSum(s, t4);
+        quickTwoSum(s, t4);
         s = r0;
         e = r1;
         if (e != 0) {
@@ -173,12 +168,18 @@ public strictfp class QuadDoubleNumberType implements NumberType {
             s = e;
             k++;
         }
+        b_arr[0] -= a0r;
+        b_arr[1] -= a1r;
+        b_arr[2] -= a2r;
+        b_arr[3] -= a3r;
 //        System.out.println("Renomalize");
 //        System.out.printf("(%.3f, %.3f, %.3f, %.3f, %.3f) ----> (%.3f, %.3f, %.3f, %.3f)\n",
 //                a0, a1, a2, a3, a4, b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
 //        System.out.println("");
         QuadDoubleNumberType b = new QuadDoubleNumberType(b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
         return b;
+        //return new QuadDoubleNumberType(b_arr[0] - a0r, b_arr[1] - a1r, b_arr[2] - a2r, b_arr[3] - a3r);
+
     }
 
     private void negSelf() {
@@ -490,21 +491,21 @@ public strictfp class QuadDoubleNumberType implements NumberType {
 
     @Override
     public NumberType mult2() {
-        return multiply(2);
+        return new QuadDoubleNumberType(a0 * 2, a1 *2 , a2 * 2, a3 *2);
     }
 
     public int escape(NumberType x, NumberType y, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
         QuadDoubleNumberType xn, yn, x0, y0, xsq, ysq;
         xn = x0 = (QuadDoubleNumberType) x;
         yn = y0 = (QuadDoubleNumberType) y;
-        y0 = y0.multiply(1);
-        x0 = x0.multiply(1);
+        //y0 = y0.multiply(1);
+        //x0 = x0.multiply(1);
 
         hashes.clear();
         int z = 0;
         while (z < MAX_ITERATIONS - 1) {
-            xsq = xn.multiply(xn);
-            ysq = yn.multiply(yn);
+            xsq = xn.square();
+            ysq = yn.square();
             if (xsq.add(ysq).longValue() > 4) {
                 //System.out.println("problem");
                 return z;
@@ -525,7 +526,11 @@ public strictfp class QuadDoubleNumberType implements NumberType {
     public int compareTo(int i) {
         return a0 > i ? 1 : 0;
     }
-
+      @Override
+    protected Object clone() throws CloneNotSupportedException
+    {
+        return new QuadDoubleNumberType(a0,a1,a2,a3);
+    }
     @Override
     public int hashCode() {
         int hash = 7;

@@ -47,7 +47,7 @@ public class GraphicsController {
         img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         MandelbrotCalculator.initialize(THREAD_COUNT, width, height, data, 0);
         schemes = ColorScheme.values();
-        writer = SAVE_IMAGES_TO_FILE ? new ImageWriter(IMAGE_PATH) : null;
+        writer = SAVE_IMAGES_TO_FILE ? new ImageWriter(IMAGE_PATH, width, height) : null;
 
     }
 

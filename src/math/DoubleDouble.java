@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.TreeSet;
 
 /**
- * double: 53 bits DoubleDoubleNumberType: >106 bits
+ * double: 53 bits DoubleDouble: >106 bits
  *
  * @author Zom-B
  * @author David, added functions, removed not needed for proj to reduce LOC
@@ -12,7 +12,7 @@ import java.util.TreeSet;
  * @see http://crd.lbl.gov/~dhbailey/mpdist/index.html
  * @date 2006/10/22
  */
-public strictfp class DoubleDoubleNumberType implements NumberType {
+public strictfp class DoubleDouble implements NumberType {
 
     public static final char[] BASE_36_TABLE = { //
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
@@ -34,13 +34,13 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
 
     // public static final double MUL_SPLIT = 0x08000001;
     public static final double POSITIVE_INFINITY = Double.MAX_VALUE / 0x08000001;
-    public static final double NEGATIVE_INFINITY = -DoubleDoubleNumberType.POSITIVE_INFINITY;
+    public static final double NEGATIVE_INFINITY = -DoubleDouble.POSITIVE_INFINITY;
     public static final double HALF_EPSILON = 1.1102230246251565E-16;
     public static final double EPSILON = 1.232595164407831E-32;
 
-    public static final DoubleDoubleNumberType ZERO = new DoubleDoubleNumberType(0);
-    public static final DoubleDoubleNumberType ONE = new DoubleDoubleNumberType(1);
-    public static final DoubleDoubleNumberType TEN = new DoubleDoubleNumberType(10);
+    public static final DoubleDouble ZERO = new DoubleDouble(0);
+    public static final DoubleDouble ONE = new DoubleDouble(1);
+    public static final DoubleDouble TEN = new DoubleDouble(10);
     public static final int MAX_ZOOM = 29;
     public double hi;
     public double lo;
@@ -48,22 +48,22 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     // ***********************************************************************//
     // ************************ Creation functions ***************************//
     // ***********************************************************************//
-    public DoubleDoubleNumberType() {
+    public DoubleDouble() {
         this.hi = 0;
         this.lo = 0;
     }
 
-    public DoubleDoubleNumberType(double d) {
+    public DoubleDouble(double d) {
         this.hi = d;
         this.lo = 0;
     }
 
-    public DoubleDoubleNumberType(double hi, double lo) {
+    public DoubleDouble(double hi, double lo) {
         this.hi = hi;
         this.lo = lo;
     }
 
-    public DoubleDoubleNumberType(DoubleDoubleNumberType dd) {
+    public DoubleDouble(DoubleDouble dd) {
         this.hi = dd.hi;
         this.lo = dd.lo;
     }
@@ -78,7 +78,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo = lo;
     }
 
-    public void set(DoubleDoubleNumberType dd) {
+    public void set(DoubleDouble dd) {
         this.hi = dd.hi;
         this.lo = dd.lo;
     }
@@ -94,16 +94,16 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         if (this.hi != this.hi) {
             return "NaN";
         }
-        if (this.hi >= DoubleDoubleNumberType.POSITIVE_INFINITY) {
+        if (this.hi >= DoubleDouble.POSITIVE_INFINITY) {
             return "Infinity";
         }
-        if (this.hi <= DoubleDoubleNumberType.NEGATIVE_INFINITY) {
+        if (this.hi <= DoubleDouble.NEGATIVE_INFINITY) {
             return "-Infinity";
         }
-        return "dd" + DoubleDoubleNumberType.sciString(this, 10).substring(numDigits);
+        return "dd" + DoubleDouble.sciString(this, 10).substring(numDigits);
     }
 
-    public static String sciString(DoubleDoubleNumberType dd, int base) {
+    public static String sciString(DoubleDouble dd, int base) {
         double digitsPerBit = StrictMath.log(2) / StrictMath.log(base);
         int minPrecision = (int) StrictMath.floor(105.0 * digitsPerBit + 2);
 
@@ -114,7 +114,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         int precision = (int) StrictMath.ceil((expHi - expLo + 53) * digitsPerBit);
         precision = StrictMath.max(minPrecision, precision);
         char[] chars = new char[precision + 1];
-        int exp = DoubleDoubleNumberType.to_digits(dd, chars, precision, base) + 1;
+        int exp = DoubleDouble.to_digits(dd, chars, precision, base) + 1;
         StringBuffer out = new StringBuffer(precision + 3 + (exp > 0 ? 1 : 2));
 
         out.append(chars, 0, 1);
@@ -137,7 +137,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
      * <br>
      * Where: <code>minPrecision = floor(105 / log2(base) + 1)</code>
      */
-    public static String toString(DoubleDoubleNumberType dd, int base) {
+    public static String toString(DoubleDouble dd, int base) {
         double digitsPerBit = StrictMath.log(2) / StrictMath.log(base);
         int minPrecision = (int) StrictMath.floor(105.0 * digitsPerBit + 2);
 
@@ -150,7 +150,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
 
         // Get the raw digit representation.
         char[] chars = new char[precision + 1];
-        int exp = DoubleDoubleNumberType.to_digits(dd, chars, precision, base) + 1;
+        int exp = DoubleDouble.to_digits(dd, chars, precision, base) + 1;
 
         // Get some properties.
         int left = StrictMath.max(0, -exp);
@@ -182,10 +182,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
             }
             out.append('.');
             if (left > 0) {
-                if (DoubleDoubleNumberType.ZEROES.length < left) {
+                if (DoubleDouble.ZEROES.length < left) {
                     System.err.println(left);
                 } else {
-                    out.append(DoubleDoubleNumberType.ZEROES, 0, left);
+                    out.append(DoubleDouble.ZEROES, 0, left);
                 }
             }
             out.append(chars, right, precision - right);
@@ -193,7 +193,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         return out.toString();
     }
 
-    private static int to_digits(DoubleDoubleNumberType dd, char[] s, int precision, int base) {
+    private static int to_digits(DoubleDouble dd, char[] s, int precision, int base) {
         int halfBase = (base + 1) >> 1;
 
         if (dd.hi == 0.0) {
@@ -203,10 +203,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         }
 
         // First determine the (approximate) exponent.
-        DoubleDoubleNumberType temp = dd.abs();
+        DoubleDouble temp = dd.abs();
         int exp = (int) StrictMath.floor(StrictMath.log(temp.hi) / StrictMath.log(base));
 
-        DoubleDoubleNumberType p = new DoubleDoubleNumberType(base);
+        DoubleDouble p = new DoubleDouble(base);
         if (exp < -300) {
             temp.mulSelf(p.pow(150));
             p.powSelf(-exp - 150);
@@ -276,7 +276,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
 
         // Convert to ASCII.
         for (int i = 0; i < precision; i++) {
-            s[i] = DoubleDoubleNumberType.BASE_36_TABLE[s[i]];
+            s[i] = DoubleDouble.BASE_36_TABLE[s[i]];
         }
 
         // If first digit became zero, and exp > 0, shift left.
@@ -294,13 +294,13 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     // ************************ Temporary functions **************************//
     // ***********************************************************************//
     @Override
-    public DoubleDoubleNumberType clone() {
-        return new DoubleDoubleNumberType(this.hi, this.lo);
+    public DoubleDouble clone() {
+        return new DoubleDouble(this.hi, this.lo);
     }
 
-    public DoubleDoubleNumberType normalize() {
+    public DoubleDouble normalize() {
         double s = this.hi + this.lo;
-        return new DoubleDoubleNumberType(s, this.lo + (this.hi - s));
+        return new DoubleDouble(s, this.lo + (this.hi - s));
     }
 
     public void normalizeSelf() {
@@ -333,14 +333,14 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         return rhi;
     }
 
-    public static DoubleDoubleNumberType min(DoubleDoubleNumberType x, DoubleDoubleNumberType y) {
+    public static DoubleDouble min(DoubleDouble x, DoubleDouble y) {
         if (x.hi < y.hi || (x.hi == y.hi && x.lo < y.lo)) {
             return x;
         }
         return y;
     }
 
-    public static DoubleDoubleNumberType max(DoubleDoubleNumberType x, DoubleDoubleNumberType y) {
+    public static DoubleDouble max(DoubleDouble x, DoubleDouble y) {
         if (x.hi > y.hi || (x.hi == y.hi && x.lo > y.lo)) {
             return x;
         }
@@ -360,8 +360,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     // ***********************************************************************//
     // ************************* Simple functions ****************************//
     // ***********************************************************************//
-    public DoubleDoubleNumberType round() {
-        DoubleDoubleNumberType out = new DoubleDoubleNumberType();
+    public DoubleDouble round() {
+        DoubleDouble out = new DoubleDouble();
 
         double rhi = StrictMath.round(this.hi);
 
@@ -394,8 +394,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         }
     }
 
-    public DoubleDoubleNumberType floor() {
-        DoubleDoubleNumberType out = new DoubleDoubleNumberType();
+    public DoubleDouble floor() {
+        DoubleDouble out = new DoubleDouble();
 
         double rhi = StrictMath.floor(this.hi);
 
@@ -422,8 +422,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         }
     }
 
-    public DoubleDoubleNumberType ceil() {
-        DoubleDoubleNumberType out = new DoubleDoubleNumberType();
+    public DoubleDouble ceil() {
+        DoubleDouble out = new DoubleDouble();
 
         double rhi = StrictMath.ceil(this.hi);
 
@@ -450,8 +450,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         }
     }
 
-    public DoubleDoubleNumberType trunc() {
-        DoubleDoubleNumberType out = new DoubleDoubleNumberType();
+    public DoubleDouble trunc() {
+        DoubleDouble out = new DoubleDouble();
 
         double rhi = (long) (this.hi);
 
@@ -481,8 +481,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     // ***********************************************************************//
     // *********************** Calculation functions *************************//
     // ***********************************************************************//
-    public DoubleDoubleNumberType neg() {
-        return new DoubleDoubleNumberType(-this.hi, -this.lo);
+    public DoubleDouble neg() {
+        return new DoubleDouble(-this.hi, -this.lo);
     }
 
     public void negSelf() {
@@ -490,11 +490,11 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo = -this.lo;
     }
 
-    public DoubleDoubleNumberType abs() {
+    public DoubleDouble abs() {
         if (this.hi < 0) {
-            return new DoubleDoubleNumberType(-this.hi, -this.lo);
+            return new DoubleDouble(-this.hi, -this.lo);
         }
-        return new DoubleDoubleNumberType(this.hi, this.lo);
+        return new DoubleDouble(this.hi, this.lo);
     }
 
     public void absSelf() {
@@ -504,13 +504,13 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         }
     }
 
-    public DoubleDoubleNumberType add(double y) {
+    public DoubleDouble add(double y) {
         double a, b, c;
         b = this.hi + y;
         a = this.hi - b;
         c = ((this.hi - (b + a)) + (y + a)) + this.lo;
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
     public void addSelf(double y) {
@@ -522,7 +522,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += b - this.hi;
     }
 
-    public DoubleDoubleNumberType add(DoubleDoubleNumberType y) {
+    public DoubleDouble add(DoubleDouble y) {
         double a, b, c, d, e, f;
         e = this.hi + y.hi;
         d = this.hi - e;
@@ -532,10 +532,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         b = e + d;
         c = ((this.lo - (f + a)) + (f + y.lo)) + (d + (e - b));
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
-    public void addSelf(DoubleDoubleNumberType y) {
+    public void addSelf(DoubleDouble y) {
         double a, b, c, d, e;
         a = this.hi + y.hi;
         b = this.hi - a;
@@ -548,16 +548,16 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += e - this.hi;
     }
 
-    public DoubleDoubleNumberType addFast(DoubleDoubleNumberType y) {
+    public DoubleDouble addFast(DoubleDouble y) {
         double a, b, c;
         b = this.hi + y.hi;
         a = this.hi - b;
         c = ((this.hi - (a + b)) + (a + y.hi)) + (this.lo + y.lo);
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
-    public void addSelfFast(DoubleDoubleNumberType y) {
+    public void addSelfFast(DoubleDouble y) {
         double a, b;
         b = this.hi + y.hi;
         a = this.hi - b;
@@ -566,22 +566,22 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += b - this.hi;
     }
 
-    public DoubleDoubleNumberType sub(double y) {
+    public DoubleDouble sub(double y) {
         double a, b, c;
         b = this.hi - y;
         a = this.hi - b;
         c = ((this.hi - (a + b)) + (a - y)) + this.lo;
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
-    public DoubleDoubleNumberType subR(double x) {
+    public DoubleDouble subR(double x) {
         double a, b, c;
         b = x - this.hi;
         a = x - b;
         c = ((x - (a + b)) + (a - this.hi)) - this.lo;
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
     public void subSelf(double y) {
@@ -602,7 +602,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += b - this.hi;
     }
 
-    public DoubleDoubleNumberType sub(DoubleDoubleNumberType y) {
+    public DoubleDouble sub(DoubleDouble y) {
         double a, b, c, d, e, f, g;
         g = this.lo - y.lo;
         f = this.lo - g;
@@ -612,10 +612,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         b = e + d;
         c = (d + (e - b)) + ((this.lo - (f + g)) + (f - y.lo));
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
-    public void subSelf(DoubleDoubleNumberType y) {
+    public void subSelf(DoubleDouble y) {
         double a, b, c, d, e;
         c = this.lo - y.lo;
         a = this.lo - c;
@@ -628,7 +628,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += b - this.hi;
     }
 
-    public DoubleDoubleNumberType subR(DoubleDoubleNumberType y) {
+    public DoubleDouble subR(DoubleDouble y) {
         double a, b, c, d, e, f, g;
         g = y.lo - this.lo;
         f = y.lo - g;
@@ -638,10 +638,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         b = e + d;
         c = (d + (e - b)) + ((y.lo - (f + g)) + (f - this.lo));
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
-    public void subRSelf(DoubleDoubleNumberType y) {
+    public void subRSelf(DoubleDouble y) {
         double b, d, e, f, g;
         g = y.lo - this.lo;
         f = y.lo - g;
@@ -654,16 +654,16 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo = this.lo + (b - this.hi);
     }
 
-    public DoubleDoubleNumberType subFast(DoubleDoubleNumberType y) {
+    public DoubleDouble subFast(DoubleDouble y) {
         double a, b, c;
         b = this.hi - y.hi;
         a = this.hi - b;
         c = (((this.hi - (a + b)) + (a - y.hi)) + this.lo) - y.lo;
         a = b + c;
-        return new DoubleDoubleNumberType(a, c + (b - a));
+        return new DoubleDouble(a, c + (b - a));
     }
 
-    public void subSelfFast(DoubleDoubleNumberType y) {
+    public void subSelfFast(DoubleDouble y) {
         double a, b;
         b = this.hi - y.hi;
         a = this.hi - b;
@@ -672,8 +672,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += b - this.hi;
     }
 
-    public DoubleDoubleNumberType mulPwrOf2(double y) {
-        return new DoubleDoubleNumberType(this.hi * y, this.lo * y);
+    public DoubleDouble mulPwrOf2(double y) {
+        return new DoubleDouble(this.hi * y, this.lo * y);
     }
 
     public void mulSelfPwrOf2(double y) {
@@ -681,7 +681,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo *= y;
     }
 
-    public DoubleDoubleNumberType mul(double y) {
+    public DoubleDouble mul(double y) {
         double a, b, c, d, e;
         a = 0x08000001 * this.hi;
         a += this.hi - a;
@@ -692,7 +692,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         e = this.hi * y;
         c = (((a * c - e) + (a * d + b * c)) + b * d) + this.lo * y;
         a = e + c;
-        return new DoubleDoubleNumberType(a, c + (e - a));
+        return new DoubleDouble(a, c + (e - a));
     }
 
     public void mulSelf(double y) {
@@ -709,7 +709,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += e - this.hi;
     }
 
-    public DoubleDoubleNumberType mul(DoubleDoubleNumberType y) {
+    public DoubleDouble mul(DoubleDouble y) {
         double a, b, c, d, e;
         a = 0x08000001 * this.hi;
         a += this.hi - a;
@@ -720,10 +720,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         e = this.hi * y.hi;
         c = (((a * c - e) + (a * d + b * c)) + b * d) + (this.lo * y.hi + this.hi * y.lo);
         a = e + c;
-        return new DoubleDoubleNumberType(a, c + (e - a));
+        return new DoubleDouble(a, c + (e - a));
     }
 
-    public void mulSelf(DoubleDoubleNumberType y) {
+    public void mulSelf(DoubleDouble y) {
         double a, b, c, d, e;
         a = 0x08000001 * this.hi;
         a += this.hi - a;
@@ -737,8 +737,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += e - this.hi;
     }
 
-    public DoubleDoubleNumberType divPwrOf2(double y) {
-        return new DoubleDoubleNumberType(this.hi / y, this.lo / y);
+    public DoubleDouble divPwrOf2(double y) {
+        return new DoubleDouble(this.hi / y, this.lo / y);
     }
 
     public void divSelfPwrOf2(double y) {
@@ -746,7 +746,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo /= y;
     }
 
-    public DoubleDoubleNumberType div(double y) {
+    public DoubleDouble div(double y) {
         double a, b, c, d, e, f, g, h;
         f = this.hi / y;
         a = 0x08000001 * f;
@@ -760,7 +760,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         h = this.hi - g;
         b = (g + ((((this.hi - (h + g)) + (h - e)) + this.lo) - (((a * c - e) + (a * d + b * c)) + b * d))) / y;
         a = f + b;
-        return new DoubleDoubleNumberType(a, b + (f - a));
+        return new DoubleDouble(a, b + (f - a));
     }
 
     public void divSelf(double y) {
@@ -780,7 +780,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += f - this.hi;
     }
 
-    public DoubleDoubleNumberType divr(double y) {
+    public DoubleDouble divr(double y) {
         double a, b, c, d, e, f;
         f = y / this.hi;
         a = 0x08000001 * this.hi;
@@ -792,7 +792,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         e = this.hi * f;
         b = ((y - e) - ((((a * c - e) + (a * d + b * c)) + b * d) + this.lo * f)) / this.hi;
         a = f + b;
-        return new DoubleDoubleNumberType(a, b + (f - a));
+        return new DoubleDouble(a, b + (f - a));
     }
 
     public void divrSelf(double y) {
@@ -810,7 +810,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += f - this.hi;
     }
 
-    public DoubleDoubleNumberType div(DoubleDoubleNumberType y) {
+    public DoubleDouble div(DoubleDouble y) {
         double a, b, c, d, e, f, g;
         f = this.hi / y.hi;
         a = 0x08000001 * y.hi;
@@ -831,10 +831,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         b = a / y.hi;
         f += (e + (g - a)) / y.hi;
         a = f + b;
-        return new DoubleDoubleNumberType(a, b + (f - a));
+        return new DoubleDouble(a, b + (f - a));
     }
 
-    public void divSelf(DoubleDoubleNumberType y) {
+    public void divSelf(DoubleDouble y) {
         double a, b, c, d, e, f, g;
         f = this.hi / y.hi;
         a = 0x08000001 * y.hi;
@@ -858,7 +858,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += f - this.hi;
     }
 
-    public DoubleDoubleNumberType divFast(DoubleDoubleNumberType y) {
+    public DoubleDouble divFast(DoubleDouble y) {
         double a, b, c, d, e, f, g;
         f = this.hi / y.hi;
         a = 0x08000001 * y.hi;
@@ -873,10 +873,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         c = this.hi - a;
         g = (c + ((((this.hi - c) - a) - ((e - a) + b)) + this.lo)) / y.hi;
         a = f + g;
-        return new DoubleDoubleNumberType(a, g + (f - a));
+        return new DoubleDouble(a, g + (f - a));
     }
 
-    public void divSelfFast(DoubleDoubleNumberType y) {
+    public void divSelfFast(DoubleDouble y) {
         double a, b, c, d, e, f;
         f = this.hi / y.hi;
         a = 0x08000001 * y.hi;
@@ -894,7 +894,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += f - this.hi;
     }
 
-    public DoubleDoubleNumberType recip() {
+    public DoubleDouble recip() {
         double a, b, c, d, e, f;
         f = 1 / this.hi;
         a = 0x08000001 * this.hi;
@@ -906,7 +906,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         e = this.hi * f;
         b = ((1 - e) - ((((a * c - e) + (a * d + b * c)) + b * d) + this.lo * f)) / this.hi;
         a = f + b;
-        return new DoubleDoubleNumberType(a, b + (f - a));
+        return new DoubleDouble(a, b + (f - a));
     }
 
     public void recipSelf() {
@@ -924,7 +924,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += f - this.hi;
     }
 
-    public DoubleDoubleNumberType sqr() {
+    public DoubleDouble sqr() {
         double a, b, c;
         a = 0x08000001 * this.hi;
         a += this.hi - a;
@@ -932,7 +932,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         c = this.hi * this.hi;
         b = ((((a * a - c) + a * b * 2) + b * b) + this.hi * this.lo * 2) + this.lo * this.lo;
         a = b + c;
-        return new DoubleDoubleNumberType(a, b + (c - a));
+        return new DoubleDouble(a, b + (c - a));
     }
 
     public void sqrSelf() {
@@ -946,9 +946,9 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo += c - this.hi;
     }
 
-    public DoubleDoubleNumberType sqrt() {
+    public DoubleDouble sqrt() {
         if (this.hi == 0 && this.lo == 0) {
-            return new DoubleDoubleNumberType();
+            return new DoubleDouble();
         }
 
         double a, b, c, d, e, f, g, h;
@@ -982,7 +982,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         e += a - b;
         f = b + h;
         c = b - f;
-        return new DoubleDoubleNumberType(f, e + ((b - (f + c)) + (h + c)));
+        return new DoubleDouble(f, e + ((b - (f + c)) + (h + c)));
     }
 
     public void sqrtSelf() {
@@ -1024,9 +1024,9 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo = e + ((b - (this.hi + c)) + (h + c));
     }
 
-    public DoubleDoubleNumberType sqrtFast() {
+    public DoubleDouble sqrtFast() {
         if (this.hi == 0 && this.lo == 0) {
-            return new DoubleDoubleNumberType();
+            return new DoubleDouble();
         }
 
         double a, b, c, d, e;
@@ -1042,7 +1042,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         c = (a + ((((this.hi - (c + a)) + (c - c)) + this.lo) - b)) * d * 0.5;
         a = e + c;
         b = e - a;
-        return new DoubleDoubleNumberType(a, (e - (b + a)) + (b + c));
+        return new DoubleDouble(a, (e - (b + a)) + (b + c));
     }
 
     public void sqrtSelfFast() {
@@ -1067,12 +1067,12 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     }
 
     // Devil's values:
-    // 0.693147180559945309417232121458174
+    // 0.693147180559945309417232121458174 prob log2
     // 1.03972077083991796412584818218727
     // 1.03972077083991796312584818218727
-    public DoubleDoubleNumberType exp() {
+    public DoubleDouble exp() {
         if (this.hi > 691.067739) {
-            return new DoubleDoubleNumberType(Double.POSITIVE_INFINITY);
+            return new DoubleDouble(Double.POSITIVE_INFINITY);
         }
 
         double a, b, c, d, e, f, g = 0.5, h = 0, i, j, k, l, m, n, o, p, q = 2, r = 1;
@@ -1173,7 +1173,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         f = ((c - (f + e)) + (f + i)) + a;
         c = e + f;
         d = (f + (e - c)) + ((d - (b + a)) + (b + j));
-        return new DoubleDoubleNumberType(c * r, d * r);
+        return new DoubleDouble(c * r, d * r);
     }
 
     public void expSelf() {
@@ -1283,9 +1283,9 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.hi *= r;
     }
 
-    public DoubleDoubleNumberType log() {
+    public DoubleDouble log() {
         if (this.hi <= 0.0) {
-            return new DoubleDoubleNumberType(Double.NaN);
+            return new DoubleDouble(Double.NaN);
         }
 
         double a, b, c, d, e, f, g = 0.5, h = 0, i, j, k, l, m, n, o, p, q = 2, r = 1, s;
@@ -1403,7 +1403,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         d = a - c;
         b += ((a - (c + d)) + (s + d));
         a = c + b;
-        return new DoubleDoubleNumberType(a, b + (c - a));
+        return new DoubleDouble(a, b + (c - a));
     }
 
     public void logSelf() {
@@ -1534,14 +1534,14 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         return ((long) y + 0xFF) << 52;
     }
 
-    public DoubleDoubleNumberType pow(int y) {
-        DoubleDoubleNumberType temp;
+    public DoubleDouble pow(int y) {
+        DoubleDouble temp;
         int e = y;
         if (e < 0) {
             e = -y;
         }
-        temp = new DoubleDoubleNumberType(this.hi, this.lo);
-        DoubleDoubleNumberType prod = new DoubleDoubleNumberType(1);
+        temp = new DoubleDouble(this.hi, this.lo);
+        DoubleDouble prod = new DoubleDouble(1);
         while (e > 0) {
             if ((e & 1) > 0) {
                 prod.mulSelf(temp);
@@ -1556,12 +1556,12 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     }
 
     public void powSelf(int y) {
-        DoubleDoubleNumberType temp;
+        DoubleDouble temp;
         int e = y;
         if (e < 0) {
             e = -y;
         }
-        temp = new DoubleDoubleNumberType(this.hi, this.lo);
+        temp = new DoubleDouble(this.hi, this.lo);
         this.hi = 1;
         this.lo = 0;
         while (e > 0) {
@@ -1576,7 +1576,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         }
     }
 
-    public DoubleDoubleNumberType pow(double y) {
+    public DoubleDouble pow(double y) {
         return this.log().mul(y).exp();
     }
 
@@ -1586,22 +1586,22 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.expSelf();
     }
 
-    public DoubleDoubleNumberType pow(DoubleDoubleNumberType y) {
+    public DoubleDouble pow(DoubleDouble y) {
         return this.log().mul(y).exp();
     }
 
-    public void powSelf(DoubleDoubleNumberType y) {
+    public void powSelf(DoubleDouble y) {
         this.logSelf();
         this.mulSelf(y);
         this.expSelf();
     }
 
-    public DoubleDoubleNumberType root(int y) {
+    public DoubleDouble root(int y) {
         if (this.hi == 0 && this.lo == 0) {
-            return new DoubleDoubleNumberType();
+            return new DoubleDouble();
         }
         if (this.hi < 0.0 && ((y & 1) == 0)) {
-            return new DoubleDoubleNumberType(Double.NaN);
+            return new DoubleDouble(Double.NaN);
         }
 
         if (y == 1) {
@@ -1639,7 +1639,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
             e += a - b;
             f = b + h;
             c = b - f;
-            return new DoubleDoubleNumberType(f, e + ((b - (f + c)) + (h + c)));
+            return new DoubleDouble(f, e + ((b - (f + c)) + (h + c)));
         }
 
         double a, b, c, d, e, f, g, h, i, j, k, l, m;
@@ -1733,7 +1733,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         h = e * i;
         m = ((1 - h) - ((((l * f - h) + (l * g + d * f)) + d * g) + m * i)) / e;
         l = i + m;
-        return new DoubleDoubleNumberType(l, m + (i - l));
+        return new DoubleDouble(l, m + (i - l));
     }
 
     public void rootSelf(int y) {
@@ -1879,7 +1879,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.lo = m + (i - l);
     }
 
-    public DoubleDoubleNumberType root(double y) {
+    public DoubleDouble root(double y) {
         return this.log().div(y).exp();
     }
 
@@ -1889,7 +1889,7 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.expSelf();
     }
 
-    public DoubleDoubleNumberType rootr(double y) {
+    public DoubleDouble rootr(double y) {
         return this.divr(StrictMath.log(y)).exp();
     }
 
@@ -1898,11 +1898,11 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
         this.expSelf();
     }
 
-    public DoubleDoubleNumberType root(DoubleDoubleNumberType y) {
+    public DoubleDouble root(DoubleDouble y) {
         return this.log().div(y).exp();
     }
 
-    public void rootSelf(DoubleDoubleNumberType y) {
+    public void rootSelf(DoubleDouble y) {
         this.logSelf();
         this.divSelf(y);
         this.expSelf();
@@ -1910,9 +1910,10 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
 
     @Override
     public int escape(NumberType x, NumberType y, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
-        DoubleDoubleNumberType xn, yn, x0, y0, xsq, ysq;
-        xn = x0 = (DoubleDoubleNumberType) x;
-        yn = y0 = (DoubleDoubleNumberType) y;
+        DoubleDouble xn;
+        DoubleDouble yn, x0, y0, xsq, ysq;
+        xn = x0 = (DoubleDouble) x;
+        yn = y0 = (DoubleDouble) y;
         y0 = y0.mul(1);
         x0 = x0.mul(1);
 
@@ -1938,48 +1939,48 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     }
 
     @Override
-    public DoubleDoubleNumberType add(NumberType addend) {
-        return this.addFast((DoubleDoubleNumberType) addend);
+    public DoubleDouble add(NumberType addend) {
+        return this.addFast((DoubleDouble) addend);
     }
 
     @Override
-    public DoubleDoubleNumberType subtract(NumberType subtrahend) {
-        return this.subFast((DoubleDoubleNumberType) subtrahend);
+    public DoubleDouble subtract(NumberType subtrahend) {
+        return this.subFast((DoubleDouble) subtrahend);
     }
 
     @Override
-    public DoubleDoubleNumberType multiply(NumberType multiplicand) {
-        return this.mul((DoubleDoubleNumberType) multiplicand);
+    public DoubleDouble multiply(NumberType multiplicand) {
+        return this.mul((DoubleDouble) multiplicand);
     }
 
     @Override
-    public DoubleDoubleNumberType divide(NumberType dividend) {
-        return this.div((DoubleDoubleNumberType) dividend);
+    public DoubleDouble divide(NumberType dividend) {
+        return this.div((DoubleDouble) dividend);
     }
 
     @Override
-    public DoubleDoubleNumberType subtract(double subtrahend) {
+    public DoubleDouble subtract(double subtrahend) {
         return this.sub(subtrahend);
     }
 
     @Override
-    public DoubleDoubleNumberType multiply(double multiplicand) {
+    public DoubleDouble multiply(double multiplicand) {
         return this.mul(multiplicand);
     }
 
     @Override
-    public DoubleDoubleNumberType divide(double dividend) {
+    public DoubleDouble divide(double dividend) {
         return this.div(dividend);
     }
 
     @Override
-    public DoubleDoubleNumberType square() {
+    public DoubleDouble square() {
 
         return this.pow(2);
     }
 
     @Override
-    public DoubleDoubleNumberType mult2() {
+    public DoubleDouble mult2() {
         return this.mulPwrOf2(2);
     }
 
@@ -1989,8 +1990,8 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
     }
 
     private int quadHash(NumberType xn, NumberType yn) {
-        DoubleDoubleNumberType x = (DoubleDoubleNumberType) xn;
-        DoubleDoubleNumberType y = (DoubleDoubleNumberType) yn;
+        DoubleDouble x = (DoubleDouble) xn;
+        DoubleDouble y = (DoubleDouble) yn;
         return 37 * x.hashCode() + y.hashCode();
     }
 
@@ -2004,12 +2005,12 @@ public strictfp class DoubleDoubleNumberType implements NumberType {
 
     @Override
     public NumberType toNextSystem() {
-        return new QuadDoubleNumberType(hi, lo, 0, 0);
+        return new QuadDouble(hi, lo, 0, 0);
     }
 
     @Override
     public NumberType toPreviousSystem() {
-        return new DoubleNumberType(hi);
+        return new DoubleNT(hi);
     }
 
 }

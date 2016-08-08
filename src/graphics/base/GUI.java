@@ -13,12 +13,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
-import math.DoubleNumberType;
+import math.DoubleNT;
 
 public class GUI extends Thread {
 
@@ -149,10 +148,10 @@ public class GUI extends Thread {
         //String str ="Window{xCenter=0.08039514558823516, yCenter=0.6253787604166666, xRange=1.7499999999999997E-7, yRange=1.0000000000000002E-7}";
         Window window
                 = //DoubleWindow.fromString(str);
-                new Window(new DoubleNumberType(-.75),
-                        new DoubleNumberType(0),
-                        new DoubleNumberType(1.75),
-                        new DoubleNumberType(1));
+                new Window(new DoubleNT(-.75),
+                        new DoubleNT(0),
+                        new DoubleNT(1.75),
+                        new DoubleNT(1));
         graphicsControl.setWindow(window);
         controlHandler.setWindow(window);
         controlHandler.forceUpdate();

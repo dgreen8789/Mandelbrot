@@ -25,9 +25,9 @@ public class MandelbrotCalculator {
     private static int maxZoom;
     private static Histogram histogram;
     private static int[][] data;
-    static CalculatorThread[] threads;
+    static BoxedEscape[] threads;
 
-    public static final Class[] NUMBER_SYSTEMS = new Class[]{DoubleNumberType.class, DoubleDoubleNumberType.class, QuadDoubleNumberType.class};
+    public static final Class[] NUMBER_SYSTEMS = new Class[]{DoubleNT.class, DoubleDouble.class};
     private static int currentSystem;
 
     private static Window changeNumberSystem(Class numberType, Window window) {
@@ -46,7 +46,7 @@ public class MandelbrotCalculator {
     public static void changeNumberSystem(Class numberType) {
         xCoords = (NumberType[]) Array.newInstance(numberType, xCoords.length);
         yCoords = (NumberType[]) Array.newInstance(numberType, yCoords.length);
-        for (CalculatorThread thread : threads) {
+        for (BoxedEscape thread : threads) {
             if (thread != null) {
                 thread.setxCoords(xCoords);
                 thread.setyCoords(yCoords);
@@ -73,13 +73,13 @@ public class MandelbrotCalculator {
         xCoords = (NumberType[]) Array.newInstance(NumberType.class, width);
         yCoords = (NumberType[]) Array.newInstance(NumberType.class, height);
         histogram = new Histogram(MAX_ITERATIONS);
-        threads = new CalculatorThread[numThreads];
+        threads = new BoxedEscape[numThreads];
         currentSystem = numberType;
         changeNumberSystem(NUMBER_SYSTEMS[currentSystem]);
 
         MandelbrotCalculator.data = data;
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new CalculatorThread(histogram, xCoords, yCoords, data);
+            threads[i] = new BoxedEscape(histogram, xCoords, yCoords, data);
             threads[i].start();
             threads[i].setName("Drawer thread " + i);
             System.out.println("Thread: " + threads[i].getName() + " started");
@@ -256,16 +256,16 @@ public class MandelbrotCalculator {
         System.out.println("Panning up " + distance + " pixels took " + (stop - start) + " ms");
     }
 
-    private static boolean calculating(CalculatorThread[] threads) {
+    private static boolean calculating(BoxedEscape[] threads) {
         boolean done_calculating = true;
-        for (CalculatorThread thread : threads) {
+        for (BoxedEscape thread : threads) {
             done_calculating &= (thread.getState().equals(Thread.State.TIMED_WAITING));
         }
         return !done_calculating;
     }
 
-    private static void runCalculations(CalculatorThread[] threads, long waitTime) {
-        for (CalculatorThread thread : threads) {
+    private static void runCalculations(BoxedEscape[] threads, long waitTime) {
+        for (BoxedEscape thread : threads) {
             thread.interrupt();
         }
         try {

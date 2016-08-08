@@ -11,25 +11,35 @@ import java.util.TreeSet;
  *
  * @author David
  */
-public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
+public strictfp class QuadDouble implements NumberType, Cloneable {
 
     private double a0, a1, a2, a3, r0, r1, r2;
 
     public static final int MAX_ZOOM = 200;
 
-   
-    public static final QuadDoubleNumberType ZERO = new QuadDoubleNumberType(0, 0, 0, 0);
-    public static final QuadDoubleNumberType ONE = new QuadDoubleNumberType(1.0, 0, 0, 0);
-    public static final QuadDoubleNumberType TEN = new QuadDoubleNumberType(10.0, 0, 0, 0);
+    public static final QuadDouble ZERO = new QuadDouble(0, 0, 0, 0);
+    public static final QuadDouble ONE = new QuadDouble(1.0, 0, 0, 0);
+    public static final QuadDouble TEN = new QuadDouble(10.0, 0, 0, 0);
 
-    public QuadDoubleNumberType(double a, double b, double c, double d) {
+    public QuadDouble(double a, double b, double c, double d) {
         this.a0 = a;
         this.a1 = b;
         this.a2 = c;
         this.a3 = d;
-
+        renormalize(a0, a1, a2, a3, 0);
     }
 
+    private QuadDouble(double a, double b, double c, double d, Object marker) {
+        this.a0 = a;
+        this.a1 = b;
+        this.a2 = c;
+        this.a3 = d;
+    }
+
+    public QuadDouble(double a0) {
+        this.a0 = a0;
+        a1 = a2 = a3 = 0;
+    }
 
     //Helper methods
     private void quickTwoSum(double a, double b) {
@@ -80,44 +90,48 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
 
     }
 
-    private QuadDoubleNumberType renormalize(double a0, double a1, double a2, double a3, double a4) {
+    private QuadDouble renormalize(double a0, double a1, double a2, double a3, double a4) {
+        //System.out.printf("(%.3f, %.3f, %.3f, %.3f, %.3f) ----> ", a0, a1, a2, a3, a4);
+        // System.out.printf("(%s, %s, %s, %s, %s) ----> ", a0, a1, a2, a3, a4);
         double s, e, t0, t1, t2, t3, t4, a0r, a1r, a2r, a3r, ulp;
         int k;
         double[] b_arr = new double[4];
-        a0r = a1r = a2r = a3r = 0; 
-        if(a0 == 0){
+        a0r = a1r = a2r = a3r = 0;
+        if (a0 == 0) {
+
             a0r = a0 = 1.0;
         }
         ulp = Math.ulp(a0);
-        if(a1 == 0){
+        if (a1 == 0) {
             a1r = a1 = ulp / 2;
-        }else if(a1 > ulp){
+        } else if (a1 > ulp) {
             s = (a1 / ulp) * ulp;
             a0 += s;
-            a1 -= s; 
+            a1 -= s;
         }
         ulp = Math.ulp(a1);
-        if(a2 == 0){
+        if (a2 == 0) {
             a2r = a2 = ulp / 2;
-        }else if(a2 > ulp){
+        } else if (a2 > ulp) {
             s = (a2 / ulp) * ulp;
             a1 += s;
-            a2 -= s; 
+            a2 -= s;
         }
         ulp = Math.ulp(a2);
-        if(a3 == 0){
+        if (a3 == 0) {
             a3r = a3 = ulp / 2;
-        }else if(a3 > ulp){
+        } else if (a3 > ulp) {
             s = (a3 / ulp) * ulp;
             a2 += s;
-            a3 -= s; 
+            a3 -= s;
         }
         ulp = Math.ulp(a3);
-       if(a4 > ulp){
+        if (a4 > ulp) {
             s = (a4 / ulp) * ulp;
             a3 += s;
-            a4 -= s; 
-       }
+            a4 -= s;
+        }
+
         quickTwoSum(a3, a4);
         s = r0;
         t4 = r1;
@@ -168,17 +182,19 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
             s = e;
             k++;
         }
+
         b_arr[0] -= a0r;
         b_arr[1] -= a1r;
         b_arr[2] -= a2r;
         b_arr[3] -= a3r;
 //        System.out.println("Renomalize");
-//        System.out.printf("(%.3f, %.3f, %.3f, %.3f, %.3f) ----> (%.3f, %.3f, %.3f, %.3f)\n",
-//                a0, a1, a2, a3, a4, b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
+        //System.out.printf("%.3f, %.3f, %.3f, %.3f)\n",
+        //System.out.printf("%s, %s, %s, %s)\n",
+        //        b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
 //        System.out.println("");
-        QuadDoubleNumberType b = new QuadDoubleNumberType(b_arr[0], b_arr[1], b_arr[2], b_arr[3]);
+        QuadDouble b = new QuadDouble(b_arr[0], b_arr[1], b_arr[2], b_arr[3], null);
         return b;
-        //return new QuadDoubleNumberType(b_arr[0] - a0r, b_arr[1] - a1r, b_arr[2] - a2r, b_arr[3] - a3r);
+        //return new QuadDouble(b_arr[0] - a0r, b_arr[1] - a1r, b_arr[2] - a2r, b_arr[3] - a3r);
 
     }
 
@@ -189,8 +205,8 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
         a3 = -a3;
     }
 
-    public QuadDoubleNumberType negation() {
-        return new QuadDoubleNumberType(-a0, -a1, -a2, -a3);
+    public QuadDouble negation() {
+        return new QuadDouble(-a0, -a1, -a2, -a3, null);
     }
 
     private void threeSumHelper(double x, double y, double z) {
@@ -261,9 +277,9 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     }
 
     @Override
-    public QuadDoubleNumberType add(NumberType addend) {
+    public QuadDouble add(NumberType addend) {
         double c0, c1, c2, c3, c4, c5, c6;
-        QuadDoubleNumberType o = (QuadDoubleNumberType) addend;
+        QuadDouble o = (QuadDouble) addend;
         twoSum(a0, o.a0);
         c0 = r0;
         c1 = r1;
@@ -287,14 +303,14 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     }
 
     @Override
-    public QuadDoubleNumberType subtract(NumberType subtrahend) {
-        QuadDoubleNumberType o = (QuadDoubleNumberType) subtrahend;
+    public QuadDouble subtract(NumberType subtrahend) {
+        QuadDouble o = (QuadDouble) subtrahend;
         return add(o.negation());
     }
 
     @Override
-    public QuadDoubleNumberType multiply(NumberType multiplicand) {
-        QuadDoubleNumberType o = (QuadDoubleNumberType) multiplicand;
+    public QuadDouble multiply(NumberType multiplicand) {
+        QuadDouble o = (QuadDouble) multiplicand;
         double a0b0hi, //O(1)
                 a0b0lo, a0b1hi, a1b0hi, //O(E)
                 a1b0lo, a0b1lo, a1b1hi, a2b0hi, a0b2hi, //O(E^2)
@@ -372,10 +388,10 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     }
 
     @Override
-    public QuadDoubleNumberType divide(NumberType dividend) {
-        QuadDoubleNumberType o = (QuadDoubleNumberType) dividend;
+    public QuadDouble divide(NumberType dividend) {
+        QuadDouble o = (QuadDouble) dividend;
         double q0, q1, q2, q3, q4;
-        QuadDoubleNumberType r;
+        QuadDouble r;
         q0 = a0 / o.a0;
         r = this.subtract(dividend.multiply(q0));
         q1 = r.a0 / o.a0;
@@ -389,7 +405,7 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     }
 
     @Override
-    public QuadDoubleNumberType add(double addend) {
+    public QuadDouble add(double addend) {
         double c0, c1, c2;
         twoSum(a0, addend);
         c0 = r0;
@@ -402,12 +418,12 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     }
 
     @Override
-    public QuadDoubleNumberType subtract(double subtrahend) {
+    public QuadDouble subtract(double subtrahend) {
         return add(-subtrahend);
     }
 
     @Override
-    public QuadDoubleNumberType multiply(double m) {
+    public QuadDouble multiply(double m) {
         double c0, c1, c2, c3, c4;
         twoProd(a0, m);
         c0 = r0;
@@ -426,12 +442,12 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     }
 
     @Override
-    public QuadDoubleNumberType divide(double dividend) {
+    public QuadDouble divide(double dividend) {
         return multiply(1 / dividend);
     }
 
     @Override
-    public QuadDoubleNumberType square() {
+    public QuadDouble square() {
         double a0sqhi, //O(E^0)
                 a0sqlo, a01hi, //O(E^1)
                 a02hi, a01lo, a1sqhi, //O(E^2)
@@ -491,13 +507,14 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
 
     @Override
     public NumberType mult2() {
-        return new QuadDoubleNumberType(a0 * 2, a1 *2 , a2 * 2, a3 *2);
+        return new QuadDouble(a0 * 2, a1 * 2, a2 * 2, a3 * 2, null);
     }
 
     public int escape(NumberType x, NumberType y, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
-        QuadDoubleNumberType xn, yn, x0, y0, xsq, ysq;
-        xn = x0 = (QuadDoubleNumberType) x;
-        yn = y0 = (QuadDoubleNumberType) y;
+        QuadDouble xn;
+        QuadDouble yn, x0, y0, xsq, ysq;
+        xn = x0 = (QuadDouble) x;
+        yn = y0 = (QuadDouble) y;
         //y0 = y0.multiply(1);
         //x0 = x0.multiply(1);
 
@@ -515,7 +532,7 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
                 return MAX_ITERATIONS;
             }
 
-            yn = (QuadDoubleNumberType) xn.multiply(yn).mult2().add(y0);
+            yn = (QuadDouble) xn.multiply(yn).mult2().add(y0);
             xn = xsq.subtract(ysq).add(x0);
             z++;
         }
@@ -526,11 +543,12 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
     public int compareTo(int i) {
         return a0 > i ? 1 : 0;
     }
-      @Override
-    protected Object clone() throws CloneNotSupportedException
-    {
-        return new QuadDoubleNumberType(a0,a1,a2,a3);
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return new QuadDouble(a0, a1, a2, a3, null);
     }
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -552,7 +570,7 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final QuadDoubleNumberType other = (QuadDoubleNumberType) obj;
+        final QuadDouble other = (QuadDouble) obj;
         if (Double.doubleToLongBits(this.a0) != Double.doubleToLongBits(other.a0)) {
             return false;
         }
@@ -575,10 +593,10 @@ public strictfp class QuadDoubleNumberType implements NumberType, Cloneable {
 
     @Override
     public NumberType toPreviousSystem() {
-        return new DoubleDoubleNumberType(a0, a1);
+        return new DoubleDouble(a0, a1);
     }
 
-    public int octupleHash(QuadDoubleNumberType xn, QuadDoubleNumberType yn) {
+    public int octupleHash(QuadDouble xn, QuadDouble yn) {
         int hash = 5;
         hash = 37 * hash + (int) (Double.doubleToLongBits(xn.a0) ^ (Double.doubleToLongBits(xn.a0) >>> 32));
         hash = 37 * hash + (int) (Double.doubleToLongBits(xn.a1) ^ (Double.doubleToLongBits(xn.a1) >>> 32));

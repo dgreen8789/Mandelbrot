@@ -12,61 +12,61 @@ import java.util.TreeSet;
  *
  * @author David
  */
-public class DoubleNumberType implements NumberType {
+public class DoubleNT implements NumberType {
 
-    public static final DoubleNumberType ZERO = new DoubleNumberType(0);
-    public static final DoubleNumberType ONE = new DoubleNumberType(1);
-    public static final DoubleNumberType TEN = new DoubleNumberType(10);
+    public static final DoubleNT ZERO = new DoubleNT(0);
+    public static final DoubleNT ONE = new DoubleNT(1);
+    public static final DoubleNT TEN = new DoubleNT(10);
     public static final int MAX_ZOOM = 13;
     double u;
 
-    public DoubleNumberType(double u) {
+    public DoubleNT(double u) {
         this.u = u;
     }
 
     @Override
     public NumberType add(NumberType addend) {
-        return new DoubleNumberType(u + ((DoubleNumberType) addend).u);
+        return new DoubleNT(u + ((DoubleNT) addend).u);
     }
 
     @Override
     public NumberType subtract(NumberType subtrahend) {
-        return new DoubleNumberType(u - ((DoubleNumberType) subtrahend).u);
+        return new DoubleNT(u - ((DoubleNT) subtrahend).u);
     }
 
     @Override
     public NumberType multiply(NumberType multiplicand) {
-        return new DoubleNumberType(u * ((DoubleNumberType) multiplicand).u);
+        return new DoubleNT(u * ((DoubleNT) multiplicand).u);
     }
 
     @Override
     public NumberType divide(NumberType dividend) {
-        return new DoubleNumberType(u / ((DoubleNumberType) dividend).u);
+        return new DoubleNT(u / ((DoubleNT) dividend).u);
     }
 
     @Override
     public NumberType add(double addend) {
-        return new DoubleNumberType(u + addend);
+        return new DoubleNT(u + addend);
     }
 
     @Override
     public NumberType subtract(double subtrahend) {
-        return new DoubleNumberType(u - subtrahend);
+        return new DoubleNT(u - subtrahend);
     }
 
     @Override
     public NumberType multiply(double multiplicand) {
-        return new DoubleNumberType(u * multiplicand);
+        return new DoubleNT(u * multiplicand);
     }
 
     @Override
     public NumberType divide(double dividend) {
-        return new DoubleNumberType(u / dividend);
+        return new DoubleNT(u / dividend);
     }
 
     @Override
     public NumberType square() {
-        return new DoubleNumberType(u * u);
+        return new DoubleNT(u * u);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class DoubleNumberType implements NumberType {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final DoubleNumberType other = (DoubleNumberType) obj;
+        final DoubleNT other = (DoubleNT) obj;
         if (Double.doubleToLongBits(this.u) != Double.doubleToLongBits(other.u)) {
             return false;
         }
@@ -101,7 +101,7 @@ public class DoubleNumberType implements NumberType {
 
     @Override
     public NumberType mult2() {
-        return new DoubleNumberType(2 * u);
+        return new DoubleNT(2 * u);
     }
 
     public static int hashCode(double value) {
@@ -111,8 +111,8 @@ public class DoubleNumberType implements NumberType {
 
     public int escape(NumberType x_curr, NumberType y_curr, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
         double xn, yn, y0, x0;
-        x0 = xn = ((DoubleNumberType) x_curr).u;
-        yn = y0 = ((DoubleNumberType) y_curr).u;
+        x0 = xn = ((DoubleNT) x_curr).u;
+        yn = y0 = ((DoubleNT) y_curr).u;
         double xt = 0;
         hashes.clear();
         int z = 0;
@@ -135,7 +135,7 @@ public class DoubleNumberType implements NumberType {
 
     @Override
     public NumberType toNextSystem() {
-        return new DoubleDoubleNumberType(u);
+        return new DoubleDouble(u);
     }
     
     public String toString() {
@@ -144,7 +144,7 @@ public class DoubleNumberType implements NumberType {
 
     @Override
     public NumberType toPreviousSystem() {
-        return new DoubleNumberType(u);
+        return new DoubleNT(u);
     }
 
 }

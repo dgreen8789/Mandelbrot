@@ -1,8 +1,6 @@
 package math;
 
-import graphics.base.GraphicsController;
 import graphics.colors.Histogram;
-import static java.lang.Double.doubleToRawLongBits;
 import java.util.Arrays;
 import java.util.TreeSet;
 import static math.MandelbrotCalculator.MAX_ITERATIONS;
@@ -11,7 +9,7 @@ import static math.MandelbrotCalculator.MAX_ITERATIONS;
  *
  * @author David
  */
-public class CalculatorThread extends Thread {
+public class BoxedEscape extends CalculatorType {
 
     private final Histogram histogram;
     private final int[][] buffer;
@@ -20,7 +18,7 @@ public class CalculatorThread extends Thread {
     private int miniWindow[];
     private int val;
 
-    public CalculatorThread(Histogram histogram, NumberType[] xCoords, NumberType[] yCoords, int[][] buffer) {
+    public BoxedEscape(Histogram histogram, NumberType[] xCoords, NumberType[] yCoords, int[][] buffer) {
         this.histogram = histogram;
         this.xCoords = xCoords;
         this.yCoords = yCoords;

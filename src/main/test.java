@@ -16,6 +16,6 @@ public class test {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-         GUI = new  GUI(30, true);
+         GUI = new GUI(30, false);
     }
 }

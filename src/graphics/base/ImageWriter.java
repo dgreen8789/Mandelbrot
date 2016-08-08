@@ -37,7 +37,7 @@ public class ImageWriter {
         long start = System.currentTimeMillis();
         g2d.clearRect(0, 0, img2.getWidth(), img2.getHeight());
         g2d.drawImage(img, 0, 0, null);
-        File outputfile = new File(String.format("%s\\%d_(%s, %s)(10^-%d zoom).jpg", path,start, w.xCenter, w.yCenter, w.getZoomLevel()));
+        File outputfile = new File(String.format("%s\\%d_(%10s, %10s)(10^-%d zoom).jpg", path,start, w.xCenter, w.yCenter, w.getZoomLevel()));
         try {
             outputfile.createNewFile();
             ImageIO.write(img2, "jpg", outputfile);

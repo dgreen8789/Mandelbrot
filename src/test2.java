@@ -1,5 +1,5 @@
 
-import math.QuadDouble;
+import java.awt.Rectangle;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -16,9 +16,7 @@ public class test2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        for (int i = 1; i < 1000; i++) {
-            System.out.println(new QuadDouble(i, 0,0, Math.pow(10, -i)).square());
-        }
+        Rectangle r =  new Rectangle();
         
     }
 }

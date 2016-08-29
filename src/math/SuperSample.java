@@ -9,6 +9,6 @@ package math;
  *
  * @author David
  */
-public abstract class CalculatorType extends Thread{
+public class SuperSample {
     
 }

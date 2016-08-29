@@ -24,12 +24,14 @@ public class Window {
         yRange = yRange.divide(10.0);
         this.xCenter = xCenter;
         this.yCenter = yCenter;
-    zoomLevel++;
+        zoomLevel++;
     }
 
-    public void zoomOut() {
+    public void zoomOut(NumberType xCenter, NumberType yCenter) {
         xRange = xRange.multiply(10.0);
         yRange = yRange.multiply(10.0);
+        this.xCenter = xCenter;
+        this.yCenter = yCenter;
         zoomLevel--;
     }
 

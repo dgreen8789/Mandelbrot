@@ -1,54 +1,48 @@
 package graphics.colors;
 
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
  *
  * @author David
  */
-//Thread safe Histogram class
+//Histogram class
 public class Histogram {
 
-    AtomicInteger[] histogram;
-    AtomicInteger counter;
+    int[] histogram;
+    int counter;
 
     public Histogram(int maxVal) {
-        histogram = new AtomicInteger[maxVal + 1];
-        for (int i = 0; i < histogram.length; i++) {
-            histogram[i] = new AtomicInteger(0);
-        }
-        counter = new AtomicInteger(0);
+        histogram = new int[maxVal + 1];
     }
 
     public synchronized void reset() {
-        for (AtomicInteger dataPoint : histogram) {
-            dataPoint.set(0);
-        }
-        counter.set(0);
+        Arrays.fill(histogram, 0);
     }
 
     public synchronized void increment(int point) {
-        if (histogram[point].incrementAndGet() == 1) {
-            counter.incrementAndGet();
+        if (histogram[point] == 0) {
+            counter++;
         }
+        histogram[point]++;
     }
 
     public synchronized void increment(int point, int amt) {
-        if (histogram[point].addAndGet(amt) == amt) {
-            counter.incrementAndGet();
+        if (histogram[point] == 0) {
+            counter++;
         }
+        histogram[point] += amt;
     }
 
 
     public synchronized int[][] toIntArray() {
-        int[][] values = new int[2][counter.get()];
+        int[][] values = new int[2][counter];
         int vCount = 0;
         for (int i = 0; i < histogram.length; i++) {
-            if (histogram[i].get() > 0) {
+            if (histogram[i] > 0) {
                 values[0][vCount] = i;
-                values[1][vCount++] = histogram[i].get();
+                values[1][vCount++] = histogram[i];
             }
         }
         return values;

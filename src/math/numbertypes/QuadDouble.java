@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package math;
+package math.numbertypes;
 
-import java.util.TreeSet;
+import java.util.HashSet;
+import math.NumberType;
 
 /**
  *
@@ -510,15 +511,13 @@ public strictfp class QuadDouble implements NumberType, Cloneable {
         return new QuadDouble(a0 * 2, a1 * 2, a2 * 2, a3 * 2, null);
     }
 
-    public int escape(NumberType x, NumberType y, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
+    public int escape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS) {
         QuadDouble xn;
         QuadDouble yn, x0, y0, xsq, ysq;
         xn = x0 = (QuadDouble) x;
         yn = y0 = (QuadDouble) y;
         //y0 = y0.multiply(1);
         //x0 = x0.multiply(1);
-
-        hashes.clear();
         int z = 0;
         while (z < MAX_ITERATIONS - 1) {
             xsq = xn.square();

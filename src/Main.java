@@ -1,6 +1,6 @@
 
 import graphics.base.GUI;
-import math.QuadDouble;
+import math.numbertypes.QuadDouble;
 
 
 

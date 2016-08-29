@@ -5,7 +5,7 @@
  */
 package math;
 
-import java.util.TreeSet;
+import java.util.HashSet;
 
 /**
  *
@@ -13,7 +13,7 @@ import java.util.TreeSet;
  */
 public abstract interface NumberType {
 
-    public abstract int escape(NumberType x, NumberType y, TreeSet<Integer> hashes, int MAX_ITERATIONS);
+    public abstract int escape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS);
 
     public abstract NumberType add(NumberType addend);
 

@@ -1,7 +1,9 @@
-package math;
+package math.numbertypes;
 
 import java.util.Arrays;
-import java.util.TreeSet;
+import java.util.HashSet;
+import math.DoubleNT;
+import math.NumberType;
 
 /**
  * double: 53 bits DoubleDouble: >106 bits
@@ -1909,7 +1911,7 @@ public strictfp class DoubleDouble implements NumberType {
     }
 
     @Override
-    public int escape(NumberType x, NumberType y, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
+    public int escape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS) {
         DoubleDouble xn;
         DoubleDouble yn, x0, y0, xsq, ysq;
         xn = x0 = (DoubleDouble) x;
@@ -1917,7 +1919,6 @@ public strictfp class DoubleDouble implements NumberType {
         y0 = y0.mul(1);
         x0 = x0.mul(1);
 
-        hashes.clear();
         int z = 0;
         while (z < MAX_ITERATIONS - 1) {
             xsq = xn.multiply(xn);

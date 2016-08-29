@@ -28,8 +28,8 @@ public class GUI extends Thread {
     private Graphics2D backgroundGraphics;
     private Graphics2D graphics;
     private final JFrame frame;
-    private int width = 432;
-    private int height = 288;
+    private int width = 432 * 2;
+    private int height = 288 * 2;
     private final AtomicInteger FPS = new AtomicInteger();
     private final AtomicInteger FPSLimit;
     private final GraphicsConfiguration config
@@ -38,8 +38,7 @@ public class GUI extends Thread {
             .getDefaultConfiguration();
     private final FPSCounter fpsCounter = new FPSCounter(FPS);
     public final GraphicsController graphicsControl;
-    public final ControlHandler controlHandler;
-
+    public final InputHandler inputHandler;
 
     // create a hardware accelerated image
     public final BufferedImage create(final int width, final int height, final boolean alpha) {
@@ -57,6 +56,7 @@ public class GUI extends Thread {
         if (FULL_SCREEN) {
             boolean b = setFullScreen(frame);
             //System.out.println(frame.getWidth());
+
             width = frame.getWidth();
             height = frame.getHeight();
         }
@@ -80,22 +80,24 @@ public class GUI extends Thread {
         graphicsControl = new GraphicsController(width, height, frame.getInsets());
 
         //Initialize input listeners
-        this.controlHandler = new ControlHandler(this);
+        this.inputHandler = new InputHandler();
         addListeners();
 
+        graphicsControl.setInputSource(inputHandler);
         //Initialize FPS Counter
         this.FPSLimit = new AtomicInteger(FPSLimit);
         Timer fpsTimer = new Timer();
         fpsTimer.schedule(fpsCounter, 0, 1000);
 
         //LIFTOFF *rocket noises*
+        canvas.requestFocus();
         start();
     }
 
     private void addListeners() {
-        canvas.addMouseMotionListener(controlHandler);
-        canvas.addKeyListener(controlHandler);
-        canvas.addMouseListener(controlHandler);
+        canvas.addMouseMotionListener(inputHandler);
+        canvas.addKeyListener(inputHandler);
+        canvas.addMouseListener(inputHandler);
     }
 
     public boolean setFullScreen(JFrame frame) {
@@ -146,15 +148,8 @@ public class GUI extends Thread {
 
     public void run() {
         //String str ="Window{xCenter=0.08039514558823516, yCenter=0.6253787604166666, xRange=1.7499999999999997E-7, yRange=1.0000000000000002E-7}";
-        Window window
-                = //DoubleWindow.fromString(str);
-                new Window(new DoubleNT(-.75),
-                        new DoubleNT(0),
-                        new DoubleNT(1.75),
-                        new DoubleNT(1));
-        graphicsControl.setWindow(window);
-        controlHandler.setWindow(window);
-        controlHandler.forceUpdate();
+
+        inputHandler.refresh();
         main:
         while (isRunning) {
             long fpsWait = (long) (1.0 / FPSLimit.get() * 1000);
@@ -195,7 +190,7 @@ public class GUI extends Thread {
     public void renderApplication(Graphics2D g, int width, int height) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, width, height);
-        graphicsControl.render(g, controlHandler.getInputMask());
+        graphicsControl.render(g, inputHandler.getInput());
 
     }
 

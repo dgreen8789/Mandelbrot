@@ -1,29 +1,32 @@
 package graphics.base;
 
-import math.MandelbrotCalculator;
-import math.Window;
+import graphics.base.GraphicsController.GraphicsOperation;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import javax.swing.event.MouseInputListener;
-import math.NumberType;
 
 /**
  *
  * @author David
  */
-public class ControlHandler implements MouseInputListener, KeyListener  {
+public class InputHandler implements MouseInputListener, KeyListener {
 
     private final char UP_KEY = 'W';
     private final char DOWN_KEY = 'S';
     private final char LEFT_KEY = 'A';
     private final char RIGHT_KEY = 'D';
     private final char COLOR_KEY = 'C';
-    private volatile Window window;
+    private final char SUPER_SAMPLE_KEY = 'Q';
+    private final char BOX_KEY = 'B';
 
-    private final boolean[] InputMask = new boolean[8];
+    private ArrayList<GraphicsOperation> input;
+    private Point mousePoint;
 
-    public ControlHandler(GUI gui) {
+    public InputHandler() {
+        input = new ArrayList<>();
     }
 
     @Override
@@ -45,23 +48,29 @@ public class ControlHandler implements MouseInputListener, KeyListener  {
         char c = Character.toUpperCase(e.getKeyChar());
         switch (c) {
             case UP_KEY:
-                InputMask[GraphicsController.WINDOW_PAN_UP_UPDATE] = true;
+                input.add(GraphicsOperation.WINDOW_PAN_UP_UPDATE);
                 break;
             case DOWN_KEY:
-                InputMask[GraphicsController.WINDOW_PAN_DOWN_UPDATE] = true;
+                input.add(GraphicsOperation.WINDOW_PAN_DOWN_UPDATE);
                 break;
             case LEFT_KEY:
-                InputMask[GraphicsController.WINDOW_PAN_LEFT_UPDATE] = true;
+                input.add(GraphicsOperation.WINDOW_PAN_LEFT_UPDATE);
                 break;
             case RIGHT_KEY:
-                InputMask[GraphicsController.WINDOW_PAN_RIGHT_UPDATE] = true;
+                input.add(GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE);
                 break;
             case COLOR_KEY:
-                InputMask[GraphicsController.WINDOW_COLOR_UPDATE] = true;
+                input.add(GraphicsOperation.WINDOW_COLOR_UPDATE);
                 break;
-            
+            case SUPER_SAMPLE_KEY:
+                input.add(GraphicsOperation.SUPER_SAMPLE_TOGGLE);
+                break;
+             case BOX_KEY:
+                input.add(GraphicsOperation.BOX_KEY);
+                break;
+
+
         }
-        InputMask[GraphicsController.ANYTHING] = true;
 
     }
 
@@ -82,17 +91,13 @@ public class ControlHandler implements MouseInputListener, KeyListener  {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-
+        mousePoint = e.getPoint();
         if (e.getButton() == MouseEvent.BUTTON1) {
-            NumberType[] coords = MandelbrotCalculator.coordinateByPoint(e.getPoint(), window);
-            window.zoomIn(coords[0], coords[1]);
-            InputMask[GraphicsController.WINDOW_ZOOM_UPDATE] = true;
+            input.add(GraphicsOperation.WINDOW_ZOOM_IN_UPDATE);
         }
         if (e.getButton() == MouseEvent.BUTTON3) {
-            window.zoomOut();
-            InputMask[GraphicsController.WINDOW_ZOOM_UPDATE] = true;
+            input.add(GraphicsOperation.WINDOW_ZOOM_OUT_UPDATE);
         }
-        InputMask[GraphicsController.ANYTHING] = true;
 
     }
 
@@ -104,17 +109,21 @@ public class ControlHandler implements MouseInputListener, KeyListener  {
     public void mouseExited(MouseEvent e) {
     }
 
-    public void setWindow(Window window) {
-        this.window = window;
+    public ArrayList<GraphicsOperation> getInput() {
+        return input;
     }
 
-    public boolean[] getInputMask() {
-        return InputMask;
+    public Point getMousePoint() {
+        return mousePoint;
     }
 
-    void forceUpdate() {
-        InputMask[GraphicsController.ANYTHING] = InputMask[GraphicsController.WINDOW_ZOOM_UPDATE]
-                = InputMask[GraphicsController.WINDOW_COLOR_UPDATE] = true;
+    void refresh() {
+        input.add(GraphicsOperation.REFRESH);
+    }
+
+    void forceZoom(int x, int y) {
+        mousePoint = new Point(x, y);
+        input.add(GraphicsOperation.WINDOW_ZOOM_IN_UPDATE);
     }
 
 }

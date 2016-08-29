@@ -5,8 +5,9 @@
  */
 package math;
 
+import math.numbertypes.DoubleDouble;
 import static java.lang.Double.doubleToRawLongBits;
-import java.util.TreeSet;
+import java.util.HashSet;
 
 /**
  *
@@ -109,12 +110,11 @@ public class DoubleNT implements NumberType {
         return (int) (bits ^ (bits >>> 32));
     }
 
-    public int escape(NumberType x_curr, NumberType y_curr, TreeSet<Integer> hashes, int MAX_ITERATIONS) {
+    public int escape(NumberType x_curr, NumberType y_curr, HashSet<Integer> hashes, int MAX_ITERATIONS) {
         double xn, yn, y0, x0;
         x0 = xn = ((DoubleNT) x_curr).u;
         yn = y0 = ((DoubleNT) y_curr).u;
         double xt = 0;
-        hashes.clear();
         int z = 0;
         while (z < MAX_ITERATIONS - 1) {
             if (xn * xn + yn * yn > 4) {

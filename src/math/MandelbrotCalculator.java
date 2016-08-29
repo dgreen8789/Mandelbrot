@@ -1,8 +1,10 @@
 package math;
 
+import math.numbertypes.DoubleDouble;
 import graphics.colors.Histogram;
 import java.awt.Point;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 /**
  *
@@ -10,7 +12,8 @@ import java.lang.reflect.Array;
  */
 public class MandelbrotCalculator {
 
-    public static int MAX_ITERATIONS = 4096;
+    public static int MAX_ITERATIONS = 2048;
+    public static int SUPER_SAMPLING_FACTOR = 1; //sqrt of super sampling
 
     private static final int ZOOM_WAIT_TIME = 50;
     private static final int PAN_WAIT_TIME = 5;
@@ -18,13 +21,14 @@ public class MandelbrotCalculator {
     private static NumberType[] yCoords;
     private static NumberType xEpsilon;
     private static NumberType yEpsilon;
-
+    private volatile Window window;
+    private final int[][] data;
     private static NumberType ZERO;
     private static NumberType ONE;
     private static NumberType TEN;
     private static int maxZoom;
     private static Histogram histogram;
-    private static int[][] data;
+    private static ArrayList<MRectangle> boxes;
     static BoxedEscape[] threads;
 
     public static final Class[] NUMBER_SYSTEMS = new Class[]{DoubleNT.class, DoubleDouble.class};
@@ -69,17 +73,23 @@ public class MandelbrotCalculator {
         System.out.println("Switched to number system " + numberType.getSimpleName());
     }
 
-    public static void initialize(int numThreads, int width, int height, int[][] data, int numberType) {
+    public MandelbrotCalculator(int numThreads, int width, int height, int numberType) {
+        window
+                = //DoubleWindow.fromString(str);
+                new Window(new DoubleNT(-.75),
+                        new DoubleNT(0),
+                        new DoubleNT(1.75),
+                        new DoubleNT(1));
         xCoords = (NumberType[]) Array.newInstance(NumberType.class, width);
         yCoords = (NumberType[]) Array.newInstance(NumberType.class, height);
+        data = new int[width][height];
         histogram = new Histogram(MAX_ITERATIONS);
         threads = new BoxedEscape[numThreads];
         currentSystem = numberType;
         changeNumberSystem(NUMBER_SYSTEMS[currentSystem]);
 
-        MandelbrotCalculator.data = data;
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new BoxedEscape(histogram, xCoords, yCoords, data);
+            threads[i] = new BoxedEscape(xCoords, yCoords, data);
             threads[i].start();
             threads[i].setName("Drawer thread " + i);
             System.out.println("Thread: " + threads[i].getName() + " started");
@@ -88,19 +98,24 @@ public class MandelbrotCalculator {
 
     }
 
-    /**
-     * Draws the Mandelbrot set
-     *
-     * @param window
-     * @param data
-     * @return
-     */
-    public static Window draw(Window window) {
+    public void zoom(boolean deeper, Point p) {
+        NumberType[] coords = coordinateByPoint(p);
+        if (deeper) {
+            window.zoomIn(coords[0], coords[1]);
+        } else {
+            window.zoomOut(coords[0], coords[1]);
+        }
+        draw();
+    }
+
+    public void draw() {
+
+        System.out.println(window);
         long start = System.currentTimeMillis();
-        if (window.getZoomLevel() > maxZoom ) {
+        if (window.getZoomLevel() > maxZoom) {
             System.out.println("Precision fail imminent, ");
             if (currentSystem < NUMBER_SYSTEMS.length - 1) {
-                currentSystem = (currentSystem == NUMBER_SYSTEMS.length - 1 ? currentSystem : currentSystem + 1);
+                currentSystem = currentSystem + 1;
                 System.out.println("Attempting number system #" + currentSystem);
 
                 window = changeNumberSystem(NUMBER_SYSTEMS[currentSystem], window);
@@ -129,11 +144,11 @@ public class MandelbrotCalculator {
         runCalculations(threads, ZOOM_WAIT_TIME);
         long stop = System.currentTimeMillis();
         System.out.println("Calculation took " + (stop - start) + " ms");
-        return window;
         //System.out.println("\n\n\n");
     }
 
-    public static NumberType[] coordinateByPoint(Point p, Window window) {
+    public NumberType[] coordinateByPoint(Point p) {
+        System.out.println(p);
         System.out.println("Coord by point vars");
         System.out.println(window);
         System.out.println(xEpsilon);
@@ -144,11 +159,11 @@ public class MandelbrotCalculator {
         };
     }
 
-    public static Histogram getHistogram() {
+    public Histogram getHistogram() {
         return histogram;
     }
 
-    public static void panRight(int distance, Window window) {
+    public void panRight(int distance) {
         long start = System.currentTimeMillis();
         int i;
         for (i = 0; i < xCoords.length - distance; i++) {
@@ -175,7 +190,7 @@ public class MandelbrotCalculator {
 
     }
 
-    public static void panLeft(int distance, Window window) {
+    public void panLeft(int distance) {
         long start = System.currentTimeMillis();
         int i;
         for (i = xCoords.length - distance - 1; i >= 0; i--) {
@@ -203,7 +218,7 @@ public class MandelbrotCalculator {
 
     }
 
-    public static void panDown(int distance, Window window) {
+    public void panDown(int distance) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
             System.arraycopy(row, distance, row, 0, row.length - distance);
@@ -230,7 +245,7 @@ public class MandelbrotCalculator {
 
     }
 
-    public static void panUp(int distance, Window window) {
+    public void panUp(int distance) {
         long start = System.currentTimeMillis();
         for (int[] row : data) {
             System.arraycopy(row, 0, row, distance, row.length - distance);
@@ -273,8 +288,50 @@ public class MandelbrotCalculator {
         } catch (InterruptedException ex) {
         }
         while (calculating(threads));
+        boxes = new ArrayList<>();
+        for (BoxedEscape thread : threads) {
+            boxes.addAll(thread.getBoxes());
+        }
+        System.out.println(boxes.size() + " boxes");
     }
-    
-    
-    
+
+    public ArrayList<MRectangle> getBoxes() {
+        return boxes;
+    }
+
+    public int[][] getDataArray() {
+        System.out.println(data.length);
+        System.out.println(data[0].length);
+        for (int[] data1 : data) {
+            for (int d : data1) {
+                histogram.increment(d);
+            }
+//        } else {
+//            int k = SUPER_SAMPLING_FACTOR / 2;
+//            int[][] retdata = new int[data.length / SUPER_SAMPLING_FACTOR][data[0].length / SUPER_SAMPLING_FACTOR];
+//            for (int i = 0; i < retdata.length; i++) {
+//                int xC = i * SUPER_SAMPLING_FACTOR + SUPER_SAMPLING_FACTOR / 2;
+//                for (int j = 0; j < retdata[0].length; j++) {
+//                    int yC = j * SUPER_SAMPLING_FACTOR + SUPER_SAMPLING_FACTOR / 2;
+//                    for (int l = xC - k; l < xC + k; l++) {
+//                        for (int m = yC - k; m < yC + k; m++) {
+//                            retdata[i][j] += data[l][m];
+//                        }
+//                    }
+//                    retdata[i][j] /= SUPER_SAMPLING_FACTOR * SUPER_SAMPLING_FACTOR;
+//
+//                    histogram.increment(retdata[i][j]);
+//                }
+//            }
+//
+//            return retdata;
+//        }
+        }
+        return data;
+    }
+
+    public Window getWindow() {
+        return window;
+    }
+
 }

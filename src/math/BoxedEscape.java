@@ -1,9 +1,8 @@
 package math;
 
-import java.awt.Rectangle;
+import architecture.Pool;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import static math.MandelbrotCalculator.MAX_ITERATIONS;
 
@@ -14,12 +13,13 @@ import static math.MandelbrotCalculator.MAX_ITERATIONS;
 public class BoxedEscape extends Thread {
 
     private final int[][] buffer;
-    private volatile  NumberType[] xCoords;
-    private volatile  NumberType[] yCoords;
-    private int miniWindow[];
+    private volatile NumberType[] xCoords;
+    private volatile NumberType[] yCoords;
     private int val;
-    private static final int NOT_CALCULATED_CONST = -1;
-    private static ArrayList<MRectangle> boxes;
+    public static final int NOT_CALCULATED_CONST = -1;
+    private Pool<MRectangle> inPool;
+    private Pool<MRectangle> outPool;
+
     public BoxedEscape(NumberType[] xCoords, NumberType[] yCoords, int[][] buffer) {
         this.xCoords = xCoords;
         this.yCoords = yCoords;
@@ -35,102 +35,90 @@ public class BoxedEscape extends Thread {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException ex) {
             }
-            for (int i = miniWindow[0]; i < miniWindow[1]; i++) {
-                Arrays.fill(buffer[i], miniWindow[2], miniWindow[3], NOT_CALCULATED_CONST);
+            while (!inPool.isEmpty()) {
+                render(inPool.remove(0));
             }
-            boxes = new ArrayList<>();
-            render(miniWindow[0], miniWindow[1], miniWindow[2], miniWindow[3]);
         }
     }
-
-    //hashlist for the escape algorithm
-    private HashSet<Integer> hashes;
 
     private int escape(NumberType x_curr, NumberType y_curr) {
-        //Faster than clearing existing hashset. Thanks, Thomas
-        hashes = new HashSet<>(); 
-        // System.out.println(x_curr);
-        return x_curr.escape(x_curr, y_curr, hashes, MAX_ITERATIONS);
+        //Making new hashset is faster than an clearing existing hashset. Thanks, Thomas
+        return x_curr.escape(x_curr, y_curr, new HashSet<>(), MAX_ITERATIONS);
     }
 
-    public void setMiniWindow(int[] minWindow) {
-        this.miniWindow = minWindow;
-    }
-
-    public int testBox(int xMin, int xMax, int yMin, int yMax) {
-        int dVal;
-        if (buffer[xMin][yMin] == NOT_CALCULATED_CONST) {
-            buffer[xMin][yMin] = escape(xCoords[xMin], yCoords[yMin]);
+    public boolean testBox(MRectangle e) {
+        //System.out.println(e.height);
+        int yMax = e.y + e.height - 1;
+        //System.out.println("ymax " +  yMax);
+        int xMax = e.x + e.width - 1;
+        //System.out.println(xMax + " " + yMax);
+        if (buffer[e.x][e.y] == NOT_CALCULATED_CONST) {
+            buffer[e.x][e.y] = escape(xCoords[e.x], yCoords[e.y]);
         }
-        if (buffer[xMax][yMin] == NOT_CALCULATED_CONST) {
-            buffer[xMax][yMin] = escape(xCoords[xMax], yCoords[yMin]);
+        if (buffer[xMax][e.y] == NOT_CALCULATED_CONST) {
+            buffer[xMax][e.y] = escape(xCoords[xMax], yCoords[e.y]);
         }
-        if (buffer[xMin][yMax] == NOT_CALCULATED_CONST) {
-            buffer[xMin][yMax] = escape(xCoords[xMin], yCoords[yMax]);
+        if (buffer[e.x][yMax] == NOT_CALCULATED_CONST) {
+            buffer[e.x][yMax] = escape(xCoords[e.x], yCoords[yMax]);
         }
         if (buffer[xMax][yMax] == NOT_CALCULATED_CONST) {
             buffer[xMax][yMax] = escape(xCoords[xMax], yCoords[yMax]);
         }
-        val = buffer[xMin][yMin];
-        dVal = Math.max(Math.max(buffer[xMax][yMax], buffer[xMax][yMin]), Math.max(buffer[xMin][yMin], buffer[xMin][yMax]))
-                - Math.min(Math.min(buffer[xMax][yMax], buffer[xMax][yMin]), Math.min(buffer[xMin][yMin], buffer[xMin][yMax]));
+        val = buffer[e.x][e.y];
+
         //System.out.println(val);
-        if (buffer[xMin][yMax] != val) {
-            return dVal;
+        if (buffer[e.x][yMax] != val) {
+            return false;
         }
-        if (buffer[xMax][yMin] != val) {
-            return dVal;
+        if (buffer[xMax][e.y] != val) {
+            return false;
         }
         if (buffer[xMax][yMax] != val) {
-            return dVal;
+            return false;
         }
         xLoop:
-        for (int x = xMin + 1; x < xMax; x++) {
-            if (buffer[x][yMin] == NOT_CALCULATED_CONST) {
-                buffer[x][yMin] = escape(xCoords[x], yCoords[yMin]);
+        for (int x = e.x + 1; x < xMax; x++) { //corners left off, should have been calculated earlier
+            if (buffer[x][e.y] == NOT_CALCULATED_CONST) {
+                buffer[x][e.y] = escape(xCoords[x], yCoords[e.y]);
             }
-            if (buffer[x][yMin] != val) {
-                return dVal;
+            if (buffer[x][e.y] != val) {
+                return false;
             }
             if (buffer[x][yMax] == NOT_CALCULATED_CONST) {
                 buffer[x][yMax] = escape(xCoords[x], yCoords[yMax]);
             }
             if (buffer[x][yMax] != val) {
-                return dVal;
+                return false;
             }
         }
         yLoop:
-        for (int y = yMin + 1; y < yMax; y++) {
-            if (buffer[xMin][y] == NOT_CALCULATED_CONST) {
-                buffer[xMin][y] = escape(xCoords[xMin], yCoords[y]);
+        for (int y = e.y + 1; y < yMax; y++) {//corners left off, should have been calculated earlier
+            if (buffer[e.x][y] == NOT_CALCULATED_CONST) {
+                buffer[e.x][y] = escape(xCoords[e.x], yCoords[y]);
             }
 
-            if (buffer[xMin][y] != val) {
-                return dVal;
+            if (buffer[e.x][y] != val) {
+                return false;
             }
 
             if (buffer[xMax][y] == NOT_CALCULATED_CONST) {
                 buffer[xMax][y] = escape(xCoords[xMax], yCoords[y]);
             }
             if (buffer[xMax][y] != val) {
-                return dVal;
+                return false;
             }
         }
-        boxes.add(new MRectangle(false, xMin, yMin, xMax - xMin, yMax - yMin));
-        return NOT_CALCULATED_CONST; //0
+        return true;
     }
 
     /**
-     * Updates the buffer array and the histogram;
+     * Updates the buffer array
      *
-     * @param xMin
-     * @param xMax
-     * @param yMin
-     * @param yMax
+     * @param e
      */
-    public void iteratePlain(int xMin, int xMax, int yMin, int yMax) {
-        for (int x = xMin; x < xMax; x++) {
-            for (int y = yMin; y < yMax; y++) {
+    public void iteratePlain(MRectangle e) {
+        for (int x = e.x; x < e.x + e.width; x++) {
+            for (int y = e.y; y < e.y + e.height; y++) {
                 if (buffer[x][y] == NOT_CALCULATED_CONST) {
                     buffer[x][y] = escape(xCoords[x], yCoords[y]);
                 }
@@ -140,51 +128,47 @@ public class BoxedEscape extends Thread {
             }
             //System.out.println("Line " + xCurr + " \\ " + data.length);
         }
-        boxes.add(new MRectangle(true, xMin, yMin, xMax - xMin, yMax - yMin));
+
     }
 
-    private void render(int xMin, int xMax, int yMin, int yMax) {
-        int dx = xMax - xMin;
-        int dy = yMax - yMin;
-        boolean a = dx < 5;
-        boolean b = dy < 5;
-        int dVal = testBox(xMin, xMax - 1, yMin, yMax - 1); //dVal is the discrepancy between the edges, we use it to detect structure
-        if (dVal == NOT_CALCULATED_CONST) { //we test if NOT_CALCULATED_CONST because dVal can be zero but the rectangle is not valid
-            //System.out.println("called");
-            for (int x = xMin; x < xMax; x++) {
-                for (int y = yMin; y < yMax; y++) {
-                   buffer[x][y] = val; //comment this for box tracing
+    private void render(MRectangle e) {
+        boolean q = testBox(e);
+        if (q) {
+            for (int x = e.x; x < e.x + e.width; x++) {
+                for (int y = e.y; y < e.y + e.height; y++) {
+                    buffer[x][y] = val;
                 }
             }
-
-        } else //System.out.println("not called");
-        {
-            if (dVal > dx * dy * 10) {
-                iteratePlain(xMin, xMax, yMin, yMax);
-            } else if (a || b) {
-                if (a && b) {
-                    iteratePlain(xMin, xMax, yMin, yMax);
-                } else if (b) {
-                    render(xMin, xMin + dx / 4, yMin, yMax);
-                    render(xMin + dx / 4, xMin + dx / 2, yMin, yMax);
-                    render(xMin + dx / 2, xMin + 3 * dx / 4, yMin, yMax);
-                    render(xMin + 3 * dx / 4, xMax, yMin, yMax);
-                } else {
-                    render(xMin, xMax, yMin, yMin + dy / 4);
-                    render(xMin, xMax, yMin + dy / 4, yMin + dy / 2);
-                    render(xMin, xMax, yMin + dy / 2, yMin + 3 * dy / 4);
-                    render(xMin, xMax, yMin + 3 * dy / 4, yMax);
-                }
-            } else {
-                //System.out.println("splitting");
-                dx = xMin + dx / 2;
-                dy = yMin + dy / 2;
-                render(xMin, dx, yMin, dy);
-                render(xMin, dx, dy, yMax);
-                render(dx, xMax, yMin, dy);
-                render(dx, xMax, dy, yMax);
-            }
+            e.setFilled(false);
+            outPool.add(e);
+            return;
         }
+        //dVal is the discrepancy between the edges, we use it to detect structure
+        int a, b, c, d;
+        a = Math.max(buffer[e.x][e.y], buffer[e.x + e.width - 1][e.y]);
+        b = Math.min(buffer[e.x][e.y], buffer[e.x + e.width - 1][e.y]);
+        
+        c = Math.max(buffer[e.x + e.width - 1][e.y + e.height - 1], buffer[e.x][e.y + e.height - 1]);
+        d = Math.min(buffer[e.x + e.width - 1][e.y + e.height - 1], buffer[e.x][e.y + e.height - 1]);
+        
+        a = Math.max(a,c);
+        b = Math.min(b,d);
+ 
+        if (a - b > e.width * e.height * 10 || e.width < 5 || e.height < 5) {
+            iteratePlain(e);
+            e.setFilled(true);
+            outPool.add(e);
+        } else {
+            int dx = e.width / 2; 
+            int dy = e.height / 2;
+            //System.out.println("splitting");
+            inPool.add(new MRectangle(e.x, e.y, dx, dy));
+            inPool.add(new MRectangle(e.x + dx , e.y, dx + e.width % 2, dy));
+            inPool.add(new MRectangle(e.x, e.y + dy, dx, dy + e.height % 2));
+            inPool.add(new MRectangle(e.x + dx, e.y + dy, dx + e.width %2 , dy + e.height % 2));
+            //System.out.println(inPool.getValues());
+        }
+
     }
 
     public void setxCoords(NumberType[] xCoords) {
@@ -195,8 +179,12 @@ public class BoxedEscape extends Thread {
         this.yCoords = yCoords;
     }
 
-    public ArrayList<MRectangle> getBoxes() {
-        return boxes;
+    public void setInPool(Pool<MRectangle> inPool) {
+        this.inPool = inPool;
     }
-    
+
+    public void setOutPool(Pool<MRectangle> outPool) {
+        this.outPool = outPool;
+    }
+
 }

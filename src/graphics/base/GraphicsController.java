@@ -19,15 +19,21 @@ public class GraphicsController {
     public enum GraphicsOperation {
         WINDOW_ZOOM_IN_UPDATE, WINDOW_ZOOM_OUT_UPDATE, WINDOW_PAN_UP_UPDATE, WINDOW_PAN_DOWN_UPDATE,
         WINDOW_PAN_LEFT_UPDATE, WINDOW_PAN_RIGHT_UPDATE, WINDOW_COLOR_UPDATE, REFRESH, SUPER_SAMPLE_TOGGLE,
-        BOX_KEY
+        SHOW_BOXES
     }
 
     public static final int ANYTHING = 7;
-    public static final int MAX_SHIFT_DISTANCE = 10;
+    public static final int MAX_SHIFT_DISTANCE = Integer.MAX_VALUE;
+    
+    private static final double CONST_PAN_COEFF = 5;
+    private static final double LINEAR_PAN_COEFF = 1;
+    private static final double QUADRATIC_PAN_COEFF  = 0;
+            
     public static MandelbrotCalculator calculator;
+    public static final int THREAD_COUNT = 4;
+
     private final ColorScheme[] schemes;
     private int colorScheme;
-    private static final int THREAD_COUNT = 4;
     private TreeMap<Integer, Integer> colors;
     final private BufferedImage img;
     private final int width;
@@ -43,12 +49,15 @@ public class GraphicsController {
         this.height = h - insets.top - insets.bottom;
         System.out.println(width + ", " + height);
         img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        calculator = new MandelbrotCalculator(THREAD_COUNT, width, height, 0);
+        calculator = new MandelbrotCalculator(width, height, 0);
         schemes = ColorScheme.values();
         writer = SAVE_IMAGES_TO_FILE ? new ImageWriter(IMAGE_PATH, width, height) : null;
 
     }
-
+    private int determineShiftDistance(int consecutiveShifts){
+        return (int)Math.min(CONST_PAN_COEFF + LINEAR_PAN_COEFF * consecutiveShifts + 
+                consecutiveShifts * consecutiveShifts * QUADRATIC_PAN_COEFF, MAX_SHIFT_DISTANCE);
+    }
     /**
      * Executes the render instructions
      *
@@ -56,7 +65,7 @@ public class GraphicsController {
      * @param width the width of the canvas to zoom on
      * @param height the height of the canvas to zoom on
      */
-    private int pixelShiftDistance = 1;
+    private int numShifts = 1;
 
     private GraphicsOperation lastCommand;
     int[][] data; //Should only be used as a pointer, not for any operations.
@@ -76,40 +85,42 @@ public class GraphicsController {
             }
 
             if (input.contains(GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE)) {
+                                calculator.getHistogram().reset();
+
                 if (lastCommand == GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE) {
-                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                    numShifts ++;
                 } else {
-                    pixelShiftDistance = 1;
+                    numShifts = 1;
                 }
                 lastCommand = GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE;
-                calculator.panRight(pixelShiftDistance);
+                calculator.panRight(determineShiftDistance(numShifts));
             }
             if (input.contains(GraphicsOperation.WINDOW_PAN_LEFT_UPDATE)) {
                 if (lastCommand == GraphicsOperation.WINDOW_PAN_LEFT_UPDATE) {
-                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                    numShifts ++;
                 } else {
-                    pixelShiftDistance = 1;
+                    numShifts = 1;
                 }
                 lastCommand = GraphicsOperation.WINDOW_PAN_LEFT_UPDATE;
-                calculator.panLeft(pixelShiftDistance);
+                calculator.panLeft(determineShiftDistance(numShifts));
             }
             if (input.contains(GraphicsOperation.WINDOW_PAN_DOWN_UPDATE)) {
                 if (lastCommand == GraphicsOperation.WINDOW_PAN_DOWN_UPDATE) {
-                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                    numShifts ++;
                 } else {
-                    pixelShiftDistance = 1;
+                    numShifts = 1;
                 }
                 lastCommand = GraphicsOperation.WINDOW_PAN_DOWN_UPDATE;
-                calculator.panDown(pixelShiftDistance);
+                calculator.panDown(determineShiftDistance(numShifts));
             }
             if (input.contains(GraphicsOperation.WINDOW_PAN_UP_UPDATE)) {
                 if (lastCommand == GraphicsOperation.WINDOW_PAN_UP_UPDATE) {
-                    pixelShiftDistance = Math.min(++pixelShiftDistance, MAX_SHIFT_DISTANCE);
+                    numShifts ++;
                 } else {
-                    pixelShiftDistance = 1;
+                    numShifts = 1;
                 }
                 lastCommand = GraphicsOperation.WINDOW_PAN_UP_UPDATE;
-                calculator.panUp(pixelShiftDistance);
+                calculator.panUp(determineShiftDistance(numShifts));
             }
             if (input.contains(GraphicsOperation.WINDOW_COLOR_UPDATE)) {
                 lastCommand = GraphicsOperation.WINDOW_COLOR_UPDATE;
@@ -121,11 +132,11 @@ public class GraphicsController {
             }
 
             if ((input.contains(GraphicsOperation.SUPER_SAMPLE_TOGGLE))) {
-                calculator.getHistogram().reset();
+                //calculator.getHistogram().reset();
                 superSample = !superSample;
 
             }
-            if ((input.contains(GraphicsOperation.BOX_KEY))) {
+            if ((input.contains(GraphicsOperation.SHOW_BOXES))) {
                 drawBoxes = !drawBoxes;
 
             }
@@ -163,15 +174,13 @@ public class GraphicsController {
         if (drawBoxes) {
             for (MRectangle r : calculator.getBoxes()) {
                 if (r == null) {
+                } else //System.out.println(r);
+                if (r.isFilled()) {
+                    g.setColor(Color.MAGENTA);
+                    g.fill(r);
                 } else {
-                    //System.out.println(r);
-                    if (r.isFilled()) {
-                        g.setColor(Color.MAGENTA);
-                        g.fill(r);
-                    } else {
-                        g.setColor(Color.BLUE);
-                        g.draw(r);
-                    }
+                    g.setColor(Color.BLUE);
+                    g.draw(r);
                 }
             }
         }
@@ -190,7 +199,6 @@ public class GraphicsController {
                 Integer color = colors.get(mandelbrotData[x][y]);
                 //colors.replace(colors.lastKey(), Color.RED.getRGB()); //makes the most expensive renders be red
                 if (color == null) {
-
                     img.setRGB(x, y, Color.RED.getRGB());    //comment block for box tracing
                 } else {
                     img.setRGB(x, y, color);
@@ -210,11 +218,11 @@ public class GraphicsController {
     }
 
     public int getPixelShiftDistance() {
-        return pixelShiftDistance;
+        return numShifts;
     }
 
     public void setPixelShiftDistance(int pixelShiftDistance) {
-        this.pixelShiftDistance = pixelShiftDistance;
+        this.numShifts = pixelShiftDistance;
     }
 
     void setInputSource(InputHandler inputHandler) {

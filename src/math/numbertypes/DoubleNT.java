@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package math;
+package math.numbertypes;
 
 import math.numbertypes.DoubleDouble;
 import static java.lang.Double.doubleToRawLongBits;
 import java.util.HashSet;
+import math.NumberType;
 
 /**
  *

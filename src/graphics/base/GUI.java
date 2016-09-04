@@ -17,7 +17,6 @@ import java.util.Timer;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
-import math.DoubleNT;
 
 public class GUI extends Thread {
 

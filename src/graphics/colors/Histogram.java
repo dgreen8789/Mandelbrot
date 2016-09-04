@@ -2,7 +2,6 @@ package graphics.colors;
 
 import java.util.Arrays;
 
-
 /**
  *
  * @author David
@@ -17,26 +16,28 @@ public class Histogram {
         histogram = new int[maxVal + 1];
     }
 
-    public synchronized void reset() {
+    public void reset() {
         Arrays.fill(histogram, 0);
+        counter = 0;
     }
 
-    public synchronized void increment(int point) {
-        if (histogram[point] == 0) {
-            counter++;
+    public void increment(int point) {
+        if (point >= 0) {
+            if (histogram[point] == 0) {
+                counter++;
+            }
+            histogram[point]++;
         }
-        histogram[point]++;
     }
 
-    public synchronized void increment(int point, int amt) {
+    public void increment(int point, int amt) {
         if (histogram[point] == 0) {
             counter++;
         }
         histogram[point] += amt;
     }
 
-
-    public synchronized int[][] toIntArray() {
+    public int[][] toIntArray() {
         int[][] values = new int[2][counter];
         int vCount = 0;
         for (int i = 0; i < histogram.length; i++) {

@@ -1,6 +1,6 @@
 
-import graphics.base.GUI;
-import math.numbertypes.QuadDouble;
+import java.util.HashSet;
+import math.numbertypes.DoubleNT;
 
 
 
@@ -14,12 +14,8 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        QuadDouble one = QuadDouble.ONE;
-        System.out.println(one);
-        System.out.println(one.square());
-        System.out.println(one.add(QuadDouble.TEN));
-        one = one.add(QuadDouble.TEN);
-        System.out.println(one.square());
-        System.out.println(one.multiply(-(1/11.0)));
+        DoubleNT t = new DoubleNT(2);
+        int x  = t.escape(t, t, new HashSet<Integer>(), 8192);
+        System.out.println(x);
     }
 }

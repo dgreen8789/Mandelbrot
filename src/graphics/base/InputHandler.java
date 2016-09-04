@@ -66,7 +66,7 @@ public class InputHandler implements MouseInputListener, KeyListener {
                 input.add(GraphicsOperation.SUPER_SAMPLE_TOGGLE);
                 break;
              case BOX_KEY:
-                input.add(GraphicsOperation.BOX_KEY);
+                input.add(GraphicsOperation.SHOW_BOXES);
                 break;
 
 

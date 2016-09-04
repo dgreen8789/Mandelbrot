@@ -26,7 +26,7 @@ public enum ColorScheme {
      *
      * Does nothing on invalid scheme code
      */
-    public static TreeMap<Integer, Integer> generate(Histogram histogram, ColorScheme scheme) {
+    public static  TreeMap<Integer, Integer> generate(Histogram histogram, ColorScheme scheme) {
         long start = System.currentTimeMillis();
         colors.clear();
         switch (scheme) {
@@ -46,6 +46,8 @@ public enum ColorScheme {
     }
 
     public static void bw(int[][] data) {
+      
+        System.out.println(data[1].length);
         double len = data[1].length;
         IntStream.range(0, data[1].length).forEach(x -> colors.put(data[0][x],
                 rgbaToColorCode(255, 255, 255, (int) (255 * Math.sqrt(x / len)))));

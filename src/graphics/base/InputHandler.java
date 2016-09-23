@@ -19,7 +19,10 @@ public class InputHandler implements MouseInputListener, KeyListener {
     private final char LEFT_KEY = 'A';
     private final char RIGHT_KEY = 'D';
     private final char COLOR_KEY = 'C';
-    private final char SUPER_SAMPLE_KEY = 'Q';
+    private final char SUPER_SAMPLE_TOGGLE_KEY = 'Q';
+    private final char DECREASE_SUPER_SAMPLE_KEY = 'O';
+    private final char INCREASE_SUPER_SAMPLE_KEY = 'P';
+    private final char SWTICH_CALCULATORS_KEY = 'J';
     private final char BOX_KEY = 'B';
 
     private ArrayList<GraphicsOperation> input;
@@ -62,13 +65,21 @@ public class InputHandler implements MouseInputListener, KeyListener {
             case COLOR_KEY:
                 input.add(GraphicsOperation.WINDOW_COLOR_UPDATE);
                 break;
-            case SUPER_SAMPLE_KEY:
+            case SUPER_SAMPLE_TOGGLE_KEY:
                 input.add(GraphicsOperation.SUPER_SAMPLE_TOGGLE);
                 break;
-             case BOX_KEY:
+            case DECREASE_SUPER_SAMPLE_KEY:
+                input.add(GraphicsOperation.DECREASE_SUPER_SAMPLE);
+                break;
+            case INCREASE_SUPER_SAMPLE_KEY:
+                input.add(GraphicsOperation.INCREASE_SUPER_SAMPLE);
+                break;
+            case SWTICH_CALCULATORS_KEY:
+                input.add(GraphicsOperation.JULIA_KEY);
+                break;
+            case BOX_KEY:
                 input.add(GraphicsOperation.SHOW_BOXES);
                 break;
-
 
         }
 
@@ -115,10 +126,6 @@ public class InputHandler implements MouseInputListener, KeyListener {
 
     public Point getMousePoint() {
         return mousePoint;
-    }
-
-    void refresh() {
-        input.add(GraphicsOperation.REFRESH);
     }
 
     void forceZoom(int x, int y) {

@@ -1,8 +1,8 @@
 package math.numbertypes;
 
+import unused.QuadDouble;
 import java.util.Arrays;
 import java.util.HashSet;
-import math.NumberType;
 
 /**
  * double: 53 bits DoubleDouble: >106 bits
@@ -88,9 +88,10 @@ public strictfp class DoubleDouble implements NumberType {
     // ************************** Other functions ****************************//
     // ***********************************************************************//
     @Override
-    public String toString(){
+    public String toString() {
         return toString(10);
     }
+
     public String toString(int numDigits) {
         if (this.hi != this.hi) {
             return "NaN";
@@ -1910,19 +1911,15 @@ public strictfp class DoubleDouble implements NumberType {
     }
 
     @Override
-    public int escape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS) {
-        DoubleDouble xn;
-        DoubleDouble yn, x0, y0, xsq, ysq;
+    public int mEscape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS) {
+        DoubleDouble xn, yn, x0, y0, xsq, ysq;
         xn = x0 = (DoubleDouble) x;
         yn = y0 = (DoubleDouble) y;
-        y0 = y0.mul(1);
-        x0 = x0.mul(1);
-
         int z = 0;
         while (z < MAX_ITERATIONS - 1) {
             xsq = xn.multiply(xn);
             ysq = yn.multiply(yn);
-            if (xsq.add(ysq).longValue() > 4) {
+            if (xsq.add(ysq).hi > 4) {
                 //System.out.println("problem");
                 return z;
             }
@@ -1931,7 +1928,33 @@ public strictfp class DoubleDouble implements NumberType {
                 return MAX_ITERATIONS;
             }
 
-            yn = xn.multiply(yn).mult2().add(y0);
+            yn = xn.multiply(yn.add(yn)).add(y0);
+            xn = xsq.subtract(ysq).add(x0);
+            z++;
+        }
+        return MAX_ITERATIONS;
+    }
+
+    public int JEscape(NumberType x, NumberType y, NumberType c0, NumberType c1, HashSet<Integer> hashes, int MAX_ITERATIONS) {
+        DoubleDouble xn, yn, x0, y0, xsq, ysq;
+        xn = (DoubleDouble) x;
+        yn = (DoubleDouble) y;
+        x0 = (DoubleDouble) c0;
+        y0 = (DoubleDouble) c1;
+        int z = 0;
+        while (z < MAX_ITERATIONS - 1) {
+            xsq = xn.multiply(xn);
+            ysq = yn.multiply(yn);
+            if (xsq.add(ysq).hi > 4) {
+                //System.out.println("problem");
+                return z;
+            }
+            if (!hashes.add(quadHash(xn, yn))) {
+                //System.out.println("saved " + (MAX_ITERATIONS - z));
+                return MAX_ITERATIONS;
+            }
+
+            yn = xn.multiply(yn.add(yn)).add(y0);
             xn = xsq.subtract(ysq).add(x0);
             z++;
         }

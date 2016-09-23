@@ -11,7 +11,7 @@ import java.awt.geom.Rectangle2D;
  * @author David
  */
 public class GraphicsUtilities {
-        /**
+    /**
      *
      * @param string
      * @param g

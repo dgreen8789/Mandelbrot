@@ -15,7 +15,7 @@ public class Main {
      */
     public static void main(String[] args) {
         DoubleNT t = new DoubleNT(2);
-        int x  = t.escape(t, t, new HashSet<Integer>(), 8192);
+        int x  = t.mEscape(t, t, new HashSet<Integer>(), 8192);
         System.out.println(x);
     }
 }

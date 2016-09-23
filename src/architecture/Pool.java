@@ -13,8 +13,8 @@ import java.util.Collection;
  * @author David
  */
 public class Pool<T> {
-    private final ArrayList<T> values;
-    public Pool(){
+    private final  ArrayList<T> values;
+    public  Pool(){
         values = new ArrayList<>();
     }
     public synchronized boolean add(T e) {
@@ -32,7 +32,7 @@ public class Pool<T> {
     }
 
     public synchronized ArrayList<T> getValues() {
-        return values;
+        return (ArrayList<T>)values.clone();
     }
 
     public synchronized boolean isEmpty() {

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package math;
+package math.numbertypes;
 
 import java.util.HashSet;
 
@@ -13,8 +13,8 @@ import java.util.HashSet;
  */
 public abstract interface NumberType {
 
-    public abstract int escape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS);
-
+    public abstract int mEscape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS);
+    public abstract int JEscape(NumberType x0, NumberType y0, NumberType c0, NumberType c1, HashSet<Integer> hashes, int MAX_ITERATIONS);
     public abstract NumberType add(NumberType addend);
 
     public abstract NumberType subtract(NumberType subtrahend);

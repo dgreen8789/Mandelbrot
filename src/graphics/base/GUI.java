@@ -1,6 +1,7 @@
 package graphics.base;
 
-import math.Window;
+import unused.FPSCounter;
+import architecture.Window;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -29,13 +30,10 @@ public class GUI extends Thread {
     private final JFrame frame;
     private int width = 432 * 2;
     private int height = 288 * 2;
-    private final AtomicInteger FPS = new AtomicInteger();
-    private final AtomicInteger FPSLimit;
     private final GraphicsConfiguration config
             = GraphicsEnvironment.getLocalGraphicsEnvironment()
             .getDefaultScreenDevice()
             .getDefaultConfiguration();
-    private final FPSCounter fpsCounter = new FPSCounter(FPS);
     public final GraphicsController graphicsControl;
     public final InputHandler inputHandler;
 
@@ -84,9 +82,7 @@ public class GUI extends Thread {
 
         graphicsControl.setInputSource(inputHandler);
         //Initialize FPS Counter
-        this.FPSLimit = new AtomicInteger(FPSLimit);
         Timer fpsTimer = new Timer();
-        fpsTimer.schedule(fpsCounter, 0, 1000);
 
         //LIFTOFF *rocket noises*
         canvas.requestFocus();
@@ -148,10 +144,8 @@ public class GUI extends Thread {
     public void run() {
         //String str ="Window{xCenter=0.08039514558823516, yCenter=0.6253787604166666, xRange=1.7499999999999997E-7, yRange=1.0000000000000002E-7}";
 
-        inputHandler.refresh();
         main:
         while (isRunning) {
-            long fpsWait = (long) (1.0 / FPSLimit.get() * 1000);
             width = frame.getWidth();
             height = frame.getHeight();
 
@@ -159,8 +153,7 @@ public class GUI extends Thread {
             background = create(width, height, true);
             backgroundGraphics = (Graphics2D) background.getGraphics();
             //System.out.println(width + " " + height);
-            long renderStart = System.nanoTime();
-            frame.setTitle("Night of No Limits Mandelbrot Fractal Generator running at: " + FPS.intValue() + " FPS");
+            frame.setTitle("Night of No Limits Mandelbrot Fractal Generator");
             // Update Graphics
 
             do {
@@ -174,13 +167,7 @@ public class GUI extends Thread {
 
                 bg.dispose();
             } while (!updateScreen());
-            fpsCounter.incrementFPSCount();
-            // Better do some FPS limiting here
-            long renderTime = (System.nanoTime() - renderStart) / 1000000;
-            try {
-                Thread.sleep(Math.max(0, fpsWait - renderTime));
-            } catch (InterruptedException e) {
-            }
+  
 
         }
         frame.dispose();

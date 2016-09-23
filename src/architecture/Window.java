@@ -1,4 +1,6 @@
-package math;
+package architecture;
+
+import math.numbertypes.NumberType;
 
 /**
  *
@@ -7,10 +9,10 @@ package math;
 public class Window {
 
     private int zoomLevel = 0;
-    public volatile NumberType xCenter;
-    public volatile NumberType yCenter;
-    public volatile NumberType xRange;
-    public volatile NumberType yRange;
+    public  NumberType xCenter;
+    public  NumberType yCenter;
+    public  NumberType xRange;
+    public  NumberType yRange;
 
     public Window(NumberType xCenter, NumberType yCenter, NumberType xRange, NumberType yRange) {
         this.xCenter = xCenter;
@@ -59,11 +61,11 @@ public class Window {
     }
 
     public void shiftUp(NumberType amt) {
-        yCenter = yCenter.subtract(amt);
+        yCenter = yCenter.add(amt);
     }
 
     public void shiftDown(NumberType amt) {
-        yCenter = yCenter.add(amt);
+        yCenter = yCenter.subtract(amt);
     }
 
     public int getZoomLevel() {

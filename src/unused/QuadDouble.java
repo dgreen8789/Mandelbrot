@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package math.numbertypes;
+package unused;
 
 import java.util.HashSet;
-import math.NumberType;
+import math.numbertypes.DoubleDouble;
+import math.numbertypes.NumberType;
 
 /**
  *
@@ -511,7 +512,7 @@ public strictfp class QuadDouble implements NumberType, Cloneable {
         return new QuadDouble(a0 * 2, a1 * 2, a2 * 2, a3 * 2, null);
     }
 
-    public int escape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS) {
+    public int mEscape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS) {
         QuadDouble xn;
         QuadDouble yn, x0, y0, xsq, ysq;
         xn = x0 = (QuadDouble) x;
@@ -620,6 +621,11 @@ public strictfp class QuadDouble implements NumberType, Cloneable {
         str += "Value: " + a2 + "\tulp: " + Math.ulp(a2) + "   (2^" + Math.log(Math.ulp(a2)) / Math.log(2) + ")";
         str += "Value: " + a3 + "\tulp: " + Math.ulp(a3) + "   (2^" + Math.log(Math.ulp(a3)) / Math.log(2) + ")";
         return str;
+    }
+
+    @Override
+    public int JEscape(NumberType x0, NumberType y0, NumberType c0, NumberType c1, HashSet<Integer> hashes, int MAX_ITERATIONS) {
+        return -1;
     }
 
 }

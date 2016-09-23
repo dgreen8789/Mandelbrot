@@ -5,10 +5,8 @@
  */
 package math.numbertypes;
 
-import math.numbertypes.DoubleDouble;
 import static java.lang.Double.doubleToRawLongBits;
 import java.util.HashSet;
-import math.NumberType;
 
 /**
  *
@@ -111,26 +109,33 @@ public class DoubleNT implements NumberType {
         return (int) (bits ^ (bits >>> 32));
     }
 
-    public int escape(NumberType x_curr, NumberType y_curr, HashSet<Integer> hashes, int MAX_ITERATIONS) {
-        double xn, yn, y0, x0;
+    public int mEscape(NumberType x_curr, NumberType y_curr, HashSet<Integer> hashes, int MAX_ITERATIONS) {
+        // System.out.println("esc start");
+        double xn, yn, y0, x0, xt;
+        int z;
         x0 = xn = ((DoubleNT) x_curr).u;
         yn = y0 = ((DoubleNT) y_curr).u;
-        double xt = 0;
-        int z = 0;
+        xt = z = 0;
         while (z < MAX_ITERATIONS - 1) {
-            if (xn * xn + yn * yn > 4) {
+            xt = xn * xn;
+
+            if (xt + yn * yn > 4) {
                 //System.out.println("problem");
+                //System.out.println("esc stop");
                 return z;
             }
-            if (!hashes.add(37 * hashCode(xn) + hashCode(yn))) {
+            if (!hashes.add(37 * hashCode(xn + yn))) {
                 //System.out.println("saved " + (MAX_ITERATIONS - z));
+                //System.out.println("esc stop");
+
                 return MAX_ITERATIONS;
             }
-            xt = xn * xn - yn * yn + x0;
-            yn = 2 * xn * yn + y0;
+            xt = x0 + xt - yn * yn;
+            yn = xn * (yn + yn) + y0;
             xn = xt;
             z++;
         }
+        //System.out.println("esc stop");
         return MAX_ITERATIONS;
     }
 
@@ -138,7 +143,7 @@ public class DoubleNT implements NumberType {
     public NumberType toNextSystem() {
         return new DoubleDouble(u);
     }
-    
+
     public String toString() {
         return "" + u;
     }
@@ -146,6 +151,37 @@ public class DoubleNT implements NumberType {
     @Override
     public NumberType toPreviousSystem() {
         return new DoubleNT(u);
+    }
+
+    @Override
+    public int JEscape(NumberType x, NumberType y, NumberType c0, NumberType c1, HashSet<Integer> hashes, int MAX_ITERATIONS) {
+        double xn, yn, y0, x0, xt;
+        int z = 0;
+        xn = ((DoubleNT) x).u;
+        yn = ((DoubleNT) y).u;
+        x0 = ((DoubleNT) c0).u;
+        y0 = ((DoubleNT) c1).u;
+        while (z < MAX_ITERATIONS - 1) {
+            xt = xn * xn;
+
+            if (xt + yn * yn > 4) {
+                //System.out.println("problem");
+                //System.out.println("esc stop");
+                return z;
+            }
+            if (!hashes.add(37 * hashCode(xn + yn))) {
+                //System.out.println("saved " + (MAX_ITERATIONS - z));
+                //System.out.println("esc stop");
+
+                return MAX_ITERATIONS;
+            }
+            xt = x0 + xt - yn * yn;
+            yn = xn * (yn + yn) + y0;
+            xn = xt;
+            z++;
+        }
+        //System.out.println("esc stop");
+        return MAX_ITERATIONS;
     }
 
 }

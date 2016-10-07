@@ -3,7 +3,6 @@ package math;
 import math.numbertypes.NumberType;
 import architecture.Pool;
 import graphics.colors.Histogram;
-import java.awt.Point;
 import java.util.HashSet;
 import static math.MandelbrotRenderer.MAX_ITERATIONS;
 
@@ -17,25 +16,35 @@ public class BoxedEscape extends Thread {
     private NumberType[] xCoords;
     private NumberType[] yCoords;
     private int val;
+    private boolean isAlive;
     public static final int NOT_CALCULATED_CONST = -1;
     private Pool<MRectangle> inPool;
     private Pool<MRectangle> outPool;
-    private Histogram histogram;
+    private final Histogram histogram;
 
     public BoxedEscape(NumberType[] xCoords, NumberType[] yCoords, int[][] buffer, Histogram histogram) {
         this.xCoords = xCoords;
         this.yCoords = yCoords;
         this.buffer = buffer;
         this.histogram = histogram;
+
     }
 
     @Override
     public synchronized void run() {
-        while (!inPool.isEmpty()) {
+        isAlive = true;
+        while (isAlive) {
+            while (isAlive && !inPool.isEmpty()) {
+                try {
+                    render(inPool.remove(inPool.size() - 1));
+                } catch (IndexOutOfBoundsException e) {
+                    //System.out.println("tried to remove from empty pool");
+                }
+            }
             try {
-                render(inPool.remove(inPool.size() - 1));
-            } catch (IndexOutOfBoundsException e) {
-                //System.out.println("tried to remove from empty pool");
+                Thread.sleep(Long.MAX_VALUE);
+            } catch (InterruptedException e) {
+
             }
         }
     }
@@ -148,20 +157,21 @@ public class BoxedEscape extends Thread {
     private void render(MRectangle e) {
         int a, b, c, d, area;
         area = e.width * e.height;
-        if (area < 25) {
-            iteratePlain(e);
-            e.setFilled(true);
-            outPool.add(e);
-            return;
-        }
+        
         if (testBox(e)) {
             for (int x = e.x; x < e.x + e.width; x++) {
                 for (int y = e.y; y < e.y + e.height; y++) {
                     buffer[x][y] = val;
                 }
             }
-            histogram.increment(buffer[e.x][e.y], e.height * e.width);
+            histogram.increment(buffer[e.x][e.y], area);
             e.setFilled(false);
+            outPool.add(e);
+            return;
+        }
+        if (area < 25) {
+            iteratePlain(e);
+            e.setFilled(true);
             outPool.add(e);
             return;
         }
@@ -178,7 +188,6 @@ public class BoxedEscape extends Thread {
             iteratePlain(e);
             e.setFilled(true);
             outPool.add(e);
-
         } else {
             split(e, inPool);
             //System.out.println(inPool.getValues());
@@ -187,6 +196,7 @@ public class BoxedEscape extends Thread {
     }
 
     public static void split(MRectangle e, Pool<MRectangle> o) {
+        //System.out.print("Before: " + o.size());
         int dx = e.width / 2;
         int dy = e.height / 2;
         //System.out.println("splitting");
@@ -194,6 +204,7 @@ public class BoxedEscape extends Thread {
         o.add(new MRectangle(e.x + dx, e.y, dx + e.width % 2, dy));
         o.add(new MRectangle(e.x, e.y + dy, dx, dy + e.height % 2));
         o.add(new MRectangle(e.x + dx, e.y + dy, dx + e.width % 2, dy + e.height % 2));
+       // System.out.println("\tAfter: " + o.size());
     }
 
     public void setxCoords(NumberType[] xCoords) {
@@ -214,6 +225,10 @@ public class BoxedEscape extends Thread {
 
     public void setBuffer(int[][] buffer) {
         this.buffer = buffer;
+    }
+
+    public void kill() {
+        this.isAlive = false;
     }
 
 }

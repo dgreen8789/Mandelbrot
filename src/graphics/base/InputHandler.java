@@ -5,6 +5,8 @@ import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import javax.swing.event.MouseInputListener;
 
@@ -12,24 +14,30 @@ import javax.swing.event.MouseInputListener;
  *
  * @author David
  */
-public class InputHandler implements MouseInputListener, KeyListener {
+public class InputHandler implements MouseInputListener, MouseWheelListener, KeyListener {
 
     private final char UP_KEY = 'W';
     private final char DOWN_KEY = 'S';
     private final char LEFT_KEY = 'A';
     private final char RIGHT_KEY = 'D';
     private final char COLOR_KEY = 'C';
-    private final char SUPER_SAMPLE_TOGGLE_KEY = 'Q';
+    private final char SUPER_SAMPLE_TOGGLE_KEY = 'I';
     private final char DECREASE_SUPER_SAMPLE_KEY = 'O';
     private final char INCREASE_SUPER_SAMPLE_KEY = 'P';
-    private final char SWTICH_CALCULATORS_KEY = 'J';
+    private final char JULIA_KEY = 'J';
     private final char BOX_KEY = 'B';
+    private final char TILT_FORWARD_KEY = 'T';
+    private final char TILT_BACKWARD_KEY = 'G';
+    private final char REFRESH_KEY = 'R';
+    private final char SAVE_TO_FILE_KEY = 'Q';
 
     private ArrayList<GraphicsOperation> input;
     private Point mousePoint;
+    private int scrollDistance;
 
     public InputHandler() {
         input = new ArrayList<>();
+        //input.add(GraphicsOperation.REFRESH);
     }
 
     @Override
@@ -74,13 +82,24 @@ public class InputHandler implements MouseInputListener, KeyListener {
             case INCREASE_SUPER_SAMPLE_KEY:
                 input.add(GraphicsOperation.INCREASE_SUPER_SAMPLE);
                 break;
-            case SWTICH_CALCULATORS_KEY:
+            case JULIA_KEY:
                 input.add(GraphicsOperation.JULIA_KEY);
                 break;
             case BOX_KEY:
                 input.add(GraphicsOperation.SHOW_BOXES);
                 break;
-
+            case TILT_FORWARD_KEY:
+                input.add(GraphicsOperation.TILT_FORWARD);
+                break;
+            case TILT_BACKWARD_KEY:
+                input.add(GraphicsOperation.TILT_BACKWARD);
+                break;
+            case REFRESH_KEY:
+                input.add(GraphicsOperation.REFRESH);
+                break;
+            case SAVE_TO_FILE_KEY:
+                input.add(GraphicsOperation.SAVE_TO_FILE);
+                break;
         }
 
     }
@@ -104,10 +123,10 @@ public class InputHandler implements MouseInputListener, KeyListener {
     public void mouseReleased(MouseEvent e) {
         mousePoint = e.getPoint();
         if (e.getButton() == MouseEvent.BUTTON1) {
-            input.add(GraphicsOperation.WINDOW_ZOOM_IN_UPDATE);
+            input.add(GraphicsOperation.WINDOW_HARD_ZOOM_IN_UPDATE);
         }
         if (e.getButton() == MouseEvent.BUTTON3) {
-            input.add(GraphicsOperation.WINDOW_ZOOM_OUT_UPDATE);
+            input.add(GraphicsOperation.WINDOW_HARD_ZOOM_OUT_UPDATE);
         }
 
     }
@@ -130,7 +149,27 @@ public class InputHandler implements MouseInputListener, KeyListener {
 
     void forceZoom(int x, int y) {
         mousePoint = new Point(x, y);
-        input.add(GraphicsOperation.WINDOW_ZOOM_IN_UPDATE);
+        input.add(GraphicsOperation.WINDOW_HARD_ZOOM_IN_UPDATE);
+    }
+
+    void forceRefresh() {
+        input.add(GraphicsOperation.REFRESH);
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        mousePoint = e.getPoint();
+        scrollDistance = e.getWheelRotation();
+
+        input.add(
+                scrollDistance < 0
+                        ? GraphicsOperation.WINDOW_SOFT_ZOOM_IN_UPDATE
+                        : GraphicsOperation.WINDOW_SOFT_ZOOM_OUT_UPDATE);
+        scrollDistance = Math.abs(scrollDistance);
+    }
+
+    public int getScrollDistance() {
+        return scrollDistance;
     }
 
 }

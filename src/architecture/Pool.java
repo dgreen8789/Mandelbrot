@@ -42,6 +42,10 @@ public class Pool<T> {
     public synchronized int size() {
         return values.size();
     }
+
+    public synchronized void clear() {
+        values.clear();
+    }
     
         
     

@@ -13,7 +13,9 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeMap;
+import static math.BoxedEscape.NOT_CALCULATED_CONST;
 import math.numbertypes.NumberType;
 import math.numbertypes.DoubleDouble;
 import math.numbertypes.DoubleNT;
@@ -45,7 +47,7 @@ public abstract class FractalRenderer {
     }
 
     public NumberType[] coordinateByPoint(Point p) {
-        System.out.println("Clicked " + p);
+        //System.out.println("Clicked " + p);
         return new NumberType[]{
             window.xCenter.subtract(window.xRange).add(xEpsilon.multiply(p.x)),
             window.yCenter.add(window.yRange).subtract(yEpsilon.multiply(p.y))
@@ -54,7 +56,7 @@ public abstract class FractalRenderer {
 
     protected Window changeNumberSystem(Class numberType, Window window) {
         changeNumberSystem(numberType);
-        int zl = window.getZoomLevel();
+        double zl = window.getZoomLevel();
         window = new Window(
                 window.xCenter.toNextSystem(),
                 window.yCenter.toNextSystem(),
@@ -89,7 +91,7 @@ public abstract class FractalRenderer {
 
     public abstract int getMaxIterations();
 
-    public abstract void zoom(boolean deeper, Point p);
+    public abstract void zoom(boolean deeper, Point p, double factor);
 
     public abstract void panUp(int distance);
 
@@ -101,39 +103,44 @@ public abstract class FractalRenderer {
 
     public abstract void draw();
 
-    protected abstract void beginRender();
-
-    public abstract boolean doneRendering();
+    protected abstract void beginRender(boolean killThreads);
 
     public abstract boolean hasBoxes();
 
     public abstract ArrayList<MRectangle> getBoxes();
 
-    public BufferedImage createImage(boolean newImg, ColorScheme scheme) {
+    public BufferedImage createImage(boolean newImg, ColorScheme scheme, double theta) {
+        //System.out.println("Histogram " + histogram.toString());
         TreeMap<Integer, Integer> colors = ColorScheme.generate(histogram, scheme);
         if (colors == null) {
+            //System.out.println("COLORING FAIL");
             return image;
         }
+        double sinTheta = Math.sin(theta);
         image = newImg ? new BufferedImage(data.length, data[0].length, BufferedImage.TYPE_INT_ARGB) : image;
         for (int x = 0; x < data.length; x++) {
             for (int y = 0; y < data[0].length; y++) {
 
                 Integer color = colors.get(data[x][y]);
-                //colors.replace(colors.lastKey(), Color.RED.getRGB()); //makes the most expensive renders be red
+                //colors.replace(colors.lastKey(), Color.RED.getRGB()); 
+                //makes the most expensive renders be red
                 if (color == null) {
-                    image.setRGB(x, y, Color.BLACK.getRGB());
+                    image.setRGB(x, (int)(y * sinTheta), Color.BLACK.getRGB());
                     // System.out.printf("Color not found. Value of (%d, %d) is %d\n", x, y, data[x][y]);//comment block for box tracing
                     //System.out.println("histogram has count " + histogram.get(data[x][y]));
                 } else {
-                    image.setRGB(x, y, color);
-//                    This is a problem, needs optimization, O(N^2) is BAD
-//                    jk its like .1% of processor time lol
+                    image.setRGB(x, (int)(y * sinTheta), color);
+
                 }
-//                                    img.setRGB(x, y, mandelbrotData[x][y] > -1 ? Color.RED.getRGB() : Color.BLACK.getRGB());
-//                                      //uncomment above line for box tracing    
             }
         }
         return image;
+    }
+    public void resetData() {
+        for (int[] d : data) {
+            Arrays.fill(d, NOT_CALCULATED_CONST);
+
+        }
     }
 
     public abstract void resetWindow();

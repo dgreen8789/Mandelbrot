@@ -1,5 +1,6 @@
 package architecture;
 
+import math.MandelbrotRenderer;
 import math.numbertypes.NumberType;
 
 /**
@@ -8,33 +9,41 @@ import math.numbertypes.NumberType;
  */
 public class Window {
 
-    private int zoomLevel = 0;
-    public  NumberType xCenter;
-    public  NumberType yCenter;
-    public  NumberType xRange;
-    public  NumberType yRange;
+    private double zoomLevel = 1;
+    public NumberType xCenter;
+    public NumberType yCenter;
+    public NumberType xRange;
+    public NumberType yRange;
+    private String presentationString;
 
     public Window(NumberType xCenter, NumberType yCenter, NumberType xRange, NumberType yRange) {
         this.xCenter = xCenter;
         this.yCenter = yCenter;
         this.xRange = xRange;
         this.yRange = yRange;
+        generatePresentationString();
+
     }
 
-    public void zoomIn(NumberType xCenter, NumberType yCenter) {
-        xRange = xRange.divide(10.0);
-        yRange = yRange.divide(10.0);
+    public void zoomIn(NumberType xCenter, NumberType yCenter, double factor) {
+        //System.out.println("zoomed in. Factor =  " + factor);
+        xRange = xRange.divide(factor);
+        yRange = yRange.divide(factor);
         this.xCenter = xCenter;
         this.yCenter = yCenter;
-        zoomLevel++;
+        zoomLevel *= factor;
+        generatePresentationString();
     }
 
-    public void zoomOut(NumberType xCenter, NumberType yCenter) {
-        xRange = xRange.multiply(10.0);
-        yRange = yRange.multiply(10.0);
+    public void zoomOut(NumberType xCenter, NumberType yCenter, double factor) {
+        //System.out.println("zoomed out. Factor =  " + factor);
+
+        xRange = xRange.multiply(factor);
+        yRange = yRange.multiply(factor);
         this.xCenter = xCenter;
         this.yCenter = yCenter;
-        zoomLevel--;
+        zoomLevel /= factor;
+        generatePresentationString();
     }
 
     @Override
@@ -42,14 +51,18 @@ public class Window {
         return "Window{" + "xCenter=" + xCenter + ", yCenter=" + yCenter + ", xRange=" + xRange + ", yRange=" + yRange + '}';
     }
 
-    public String toPresentationString() {
-
-        return String.format("Current Window: X from %s to %s, Y from %s to %s. Magnification is 10^%sx",
+    private void generatePresentationString() {
+        presentationString = String.format("Current Window: X from %s to %s, Y from %s to %s. Magnification is 10^%.4fx",
                 xCenter.subtract(xRange).toString(),
                 xCenter.add(xRange).toString(),
                 yCenter.subtract(yRange).toString(),
                 yCenter.add(yRange).toString(),
-                zoomLevel);
+                getZoomLevel());
+    }
+
+    public String toPresentationString() {
+
+        return presentationString;
     }
 
     public void shiftRight(NumberType amt) {
@@ -68,12 +81,12 @@ public class Window {
         yCenter = yCenter.subtract(amt);
     }
 
-    public int getZoomLevel() {
-        return zoomLevel;
+    public double getZoomLevel() {
+        return Math.log10(zoomLevel);
     }
 
-    public void setZoomLevel(int zoomLevel) {
-        this.zoomLevel = zoomLevel;
+    public void setZoomLevel(double zoomLevel) {
+        this.zoomLevel = Math.pow(10, zoomLevel);
     }
 
 }

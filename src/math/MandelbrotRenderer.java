@@ -18,8 +18,10 @@ import static math.BoxedEscape.NOT_CALCULATED_CONST;
  */
 public class MandelbrotRenderer extends FractalRenderer {
 
-    public static int MAX_ITERATIONS = 8192;
-
+    public static int MAX_ITERATIONS = 32_768;
+    public static double HARD_ZOOM_FACTOR = 10.0;
+    public static double SOFT_ZOOM_FACTOR = 3 / 2;
+    private final MRectangle SCREEN;
     protected int maxZoom;
     protected Pool<MRectangle> inPool;
     protected Pool<MRectangle> outPool;
@@ -27,7 +29,6 @@ public class MandelbrotRenderer extends FractalRenderer {
 
     public MandelbrotRenderer(int width, int height, int numberType) {
         super(width, height, NUMBER_SYSTEMS[numberType]);
-
         threads = new BoxedEscape[GraphicsController.THREAD_COUNT];
         currentSystem = numberType;
         histogram = new Histogram(MAX_ITERATIONS);
@@ -35,7 +36,7 @@ public class MandelbrotRenderer extends FractalRenderer {
         //sampler = new SuperSampleEngine(histogram, threads);
         inPool = new Pool<>();
         outPool = new Pool<>();
-
+        SCREEN = new MRectangle(false, 0, 0, width, height);
     }
 
     public void changeNumberSystem(Class numberType) {
@@ -61,19 +62,32 @@ public class MandelbrotRenderer extends FractalRenderer {
         System.out.println("Switched to number system " + numberType.getSimpleName());
     }
 
-    public void zoom(boolean deeper, Point p) {
+    public void zoom(boolean deeper, Point p, double factor) {
         NumberType[] coords = coordinateByPoint(p);
+        boolean bigzoom = factor % HARD_ZOOM_FACTOR == 0;
+        int numerator = (int) (factor / (bigzoom ? HARD_ZOOM_FACTOR : SOFT_ZOOM_FACTOR));
         if (deeper) {
-            window.zoomIn(coords[0], coords[1]);
+            window.zoomIn(coords[0], coords[1], factor);
         } else {
-            window.zoomOut(coords[0], coords[1]);
+            window.zoomOut(coords[0], coords[1], factor);
+        }
+        if (bigzoom) {
+            System.out.println(window);
+        }
+        if (deeper && bigzoom) {
+            explode(data, numerator, 10, p);
+        } else if (deeper) { //implies smallzoom
+            explode(data, 3 * numerator, 2, p);
+        } else if (bigzoom) { //implies shrink and bigzoom
+            implode(data, numerator, 10, p);
+        } else {//implies shrink and smallzoom
+            implode(data, 3 * numerator, 2, p);
         }
         draw();
     }
 
     public void draw() {
-
-        System.out.println(window);
+        //System.out.println("called");
         if (window.getZoomLevel() > maxZoom) {
             System.out.println("Precision fail imminent, ");
             if (currentSystem < NUMBER_SYSTEMS.length - 1) {
@@ -85,7 +99,7 @@ public class MandelbrotRenderer extends FractalRenderer {
         }
         xEpsilon = window.xRange.divide(data.length).mult2();
         yEpsilon = window.yRange.divide(data[0].length).mult2();
-
+        //System.out.println("epsilon initialization completed");
         xCoords[0] = window.xCenter.subtract(window.xRange);
         for (int i = 1; i < xCoords.length; i++) {
             xCoords[i] = xCoords[i - 1].add(xEpsilon);
@@ -94,12 +108,15 @@ public class MandelbrotRenderer extends FractalRenderer {
         for (int i = 1; i < yCoords.length; i++) {
             yCoords[i] = yCoords[i - 1].subtract(yEpsilon);
         }
+        //System.out.println("coordinate arrays check");
         //System.out.println(xDelta);
-        for (int[] d : data) {
-            Arrays.fill(d, NOT_CALCULATED_CONST);
-        }
+        //inPool.clear();
+
         BoxedEscape.split(new MRectangle(0, 0, xCoords.length, yCoords.length), inPool);
-        beginRender();
+        outPool = new Pool<>();
+        //System.out.println("pools set up");
+        beginRender(true);
+
         //System.out.println("\n\n\n");
     }
 
@@ -115,7 +132,8 @@ public class MandelbrotRenderer extends FractalRenderer {
             xCoords[i] = xCoords[i - 1].add(xEpsilon);
         }
         BoxedEscape.split(new MRectangle(xCoords.length - distance, 0, distance, yCoords.length), inPool);
-        beginRender();
+        panRectangles(-distance, 0);
+        beginRender(false);
         window.shiftRight(xEpsilon.multiply(distance));
 
     }
@@ -132,7 +150,8 @@ public class MandelbrotRenderer extends FractalRenderer {
             xCoords[i] = xCoords[i + 1].subtract(xEpsilon);
         }
         BoxedEscape.split(new MRectangle(0, 0, distance, yCoords.length), inPool);
-        beginRender();
+        panRectangles(distance, 0);
+        beginRender(false);
         window.shiftLeft(xEpsilon.multiply(distance));
 
     }
@@ -148,9 +167,10 @@ public class MandelbrotRenderer extends FractalRenderer {
         for (i = yCoords.length - distance; i < yCoords.length; i++) {
             yCoords[i] = yCoords[i - 1].subtract(yEpsilon);
         }
+        panRectangles(0, -distance);
 
         BoxedEscape.split(new MRectangle(0, yCoords.length - distance, xCoords.length, distance), inPool);
-        beginRender();
+        beginRender(false);
         window.shiftDown(yEpsilon.multiply(distance));
 
     }
@@ -166,24 +186,28 @@ public class MandelbrotRenderer extends FractalRenderer {
         for (i = distance - 1; i >= 0; i--) {
             yCoords[i] = yCoords[i + 1].add(yEpsilon);
         }
+        panRectangles(0, distance);
         BoxedEscape.split(new MRectangle(0, 0, xCoords.length, distance), inPool);
-        beginRender();
+        beginRender(false);
         window.shiftUp(yEpsilon.multiply(distance));
     }
 
-    protected void beginRender() {
-        outPool = new Pool<>();
+    protected void beginRender(boolean killThreads) {
+        //System.out.println("started render");
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new BoxedEscape(xCoords, yCoords, data, histogram);
-            threads[i].setInPool(inPool);
-            threads[i].setOutPool(outPool);
-            threads[i].setName("Drawer thread " + i);
-            threads[i].start();
-            System.out.println("Thread: " + threads[i].getName() + " started");
-
+            if (killThreads) {
+                if (threads[i] != null) {
+                    threads[i].kill();
+                }
+                threads[i] = new BoxedEscape(xCoords, yCoords, data, histogram);
+                threads[i].setInPool(inPool);
+                threads[i].setOutPool(outPool);
+                threads[i].setName("Drawer thread " + i);
+                threads[i].start();
+            } else if (threads[i].getState() == Thread.State.TIMED_WAITING) {
+                threads[i].interrupt();
+            }
         }
-        done_calculating = false;
-        System.out.println(outPool.size() + " boxes");
     }
 
     public ArrayList<MRectangle> getBoxes() {
@@ -211,19 +235,6 @@ public class MandelbrotRenderer extends FractalRenderer {
     public int getMaxIterations() {
         return MAX_ITERATIONS;
     }
-    boolean done_calculating;
-
-    @Override
-    public boolean doneRendering() {
-        if (threads[0] == null) {
-            return true;
-        }
-        boolean done_calculating = true;
-        for (BoxedEscape thread : threads) {
-            done_calculating &= thread.getState().equals(Thread.State.TERMINATED);
-        }
-        return done_calculating;
-    }
 
     @Override
     public boolean hasBoxes() {
@@ -232,8 +243,31 @@ public class MandelbrotRenderer extends FractalRenderer {
 
     @Override
     public void resetWindow() {
-         window = new Window(new DoubleNT(-.75), new DoubleNT(0),
+        window = new Window(new DoubleNT(-.75), new DoubleNT(0),
                 new DoubleNT(1.75), new DoubleNT(1));
+    }
+
+    private void explode(int[][] data, int a, int b, Point newCenter) {
+        //System.out.println("exploded");
+        for (int[] d : data) {
+            Arrays.fill(d, NOT_CALCULATED_CONST);
+        }
+    }
+
+    private void implode(int[][] data, int a, int b, Point newCenter) {
+        for (int[] d : data) {
+            Arrays.fill(d, NOT_CALCULATED_CONST);
+        }
+    }
+
+ 
+
+    //values in pixelspace +y is down
+    private void panRectangles(int dx, int dy) {
+        for (MRectangle r : outPool.getValues()) {
+            r.translate(dx, dy);
+            r = r.intersection(SCREEN);
+        }
     }
 
 }

@@ -43,7 +43,7 @@ public class Histogram {
     }
 
     public synchronized int[][] toIntArray() {
-        if (counter > 0) {
+        //if (counter > 0) {
             int[][] values = new int[2][counter];
             int vCount = 0;
             for (int i = 0; i < histogram.length; i++) {
@@ -53,8 +53,8 @@ public class Histogram {
                 }
             }
             return values;
-        }
-        return null;
+       //}
+       // return null;
 
     }
 

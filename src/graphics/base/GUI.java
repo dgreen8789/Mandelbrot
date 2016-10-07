@@ -1,6 +1,5 @@
 package graphics.base;
 
-import unused.FPSCounter;
 import architecture.Window;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -14,8 +13,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
-import java.util.Timer;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
@@ -81,18 +78,17 @@ public class GUI extends Thread {
         addListeners();
 
         graphicsControl.setInputSource(inputHandler);
-        //Initialize FPS Counter
-        Timer fpsTimer = new Timer();
-
+        inputHandler.forceRefresh();
         //LIFTOFF *rocket noises*
         canvas.requestFocus();
         start();
     }
-
+  
     private void addListeners() {
         canvas.addMouseMotionListener(inputHandler);
         canvas.addKeyListener(inputHandler);
         canvas.addMouseListener(inputHandler);
+        canvas.addMouseWheelListener(inputHandler);
     }
 
     public boolean setFullScreen(JFrame frame) {
@@ -167,7 +163,6 @@ public class GUI extends Thread {
 
                 bg.dispose();
             } while (!updateScreen());
-  
 
         }
         frame.dispose();

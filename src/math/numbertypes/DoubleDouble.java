@@ -102,7 +102,7 @@ public strictfp class DoubleDouble implements NumberType {
         if (this.hi <= DoubleDouble.NEGATIVE_INFINITY) {
             return "-Infinity";
         }
-        return "dd" + DoubleDouble.sciString(this, 10).substring(numDigits);
+        return "dd" + DoubleDouble.sciString(this, 10);
     }
 
     public static String sciString(DoubleDouble dd, int base) {
@@ -127,73 +127,7 @@ public strictfp class DoubleDouble implements NumberType {
         return out.toString();
     }
 
-    /**
-     * Format a string in an easily readable format. The number is represented
-     * as scientific form on the following conditions: <br>
-     * <ol>
-     * <li>(for big numbers) When the first digit right of the decimal point
-     * would not be within the first minPrecision positions of the string, <br>
-     * <li>(for small numbers) When the most significant digit would not be
-     * within the first minPrecision positions of the string
-     * </ol>
-     * <br>
-     * Where: <code>minPrecision = floor(105 / log2(base) + 1)</code>
-     */
-    public static String toString(DoubleDouble dd, int base) {
-        double digitsPerBit = StrictMath.log(2) / StrictMath.log(base);
-        int minPrecision = (int) StrictMath.floor(105.0 * digitsPerBit + 2);
 
-        // Get the precision. (The minimum number of significant digits required
-        // for an accurate representation of this number)
-        int expHi = (int) ((Double.doubleToRawLongBits(dd.hi) & 0x7FF0000000000000L) >> 52);
-        int expLo = dd.lo == 0 ? expHi - 53 : (int) ((Double.doubleToRawLongBits(dd.lo) & 0x7FF0000000000000L) >> 52);
-        int precision = (int) StrictMath.ceil((expHi - expLo + 53) * digitsPerBit);
-        precision = StrictMath.max(minPrecision, precision);
-
-        // Get the raw digit representation.
-        char[] chars = new char[precision + 1];
-        int exp = DoubleDouble.to_digits(dd, chars, precision, base) + 1;
-
-        // Get some properties.
-        int left = StrictMath.max(0, -exp);
-        int right = StrictMath.max(0, exp);
-        if (chars[precision - 1] == 0) {
-            precision--;
-        }
-        boolean sci = -exp >= minPrecision || exp >= minPrecision;
-
-        // Allocate exactly the right size string.
-        StringBuffer out = new StringBuffer(precision + (sci ? 3 : left) + (exp > 0 ? 1 : 2));
-
-        // Build the string.
-        if (dd.hi < 0) {
-            out.append('-');
-        }
-        if (sci) {
-            out.append(chars, 0, 1);
-            out.append('.');
-            out.append(chars, 1, precision - 1);
-            out.append('e');
-            out.append(exp - 1);
-        } else {
-            if (exp <= 0) {
-                out.append('0');
-            }
-            if (right > 0) {
-                out.append(chars, 0, right);
-            }
-            out.append('.');
-            if (left > 0) {
-                if (DoubleDouble.ZEROES.length < left) {
-                    System.err.println(left);
-                } else {
-                    out.append(DoubleDouble.ZEROES, 0, left);
-                }
-            }
-            out.append(chars, right, precision - right);
-        }
-        return out.toString();
-    }
 
     private static int to_digits(DoubleDouble dd, char[] s, int precision, int base) {
         int halfBase = (base + 1) >> 1;
@@ -323,41 +257,7 @@ public strictfp class DoubleDouble implements NumberType {
         return rhi;
     }
 
-    public long longValue() {
-        long rhi = StrictMath.round(this.hi);
 
-        if (this.hi == rhi) {
-            return rhi + StrictMath.round(this.lo);
-        }
-        if (StrictMath.abs(rhi - this.hi) == 0.5 && this.lo < 0.0) {
-            return rhi - 1;
-        }
-        return rhi;
-    }
-
-    public static DoubleDouble min(DoubleDouble x, DoubleDouble y) {
-        if (x.hi < y.hi || (x.hi == y.hi && x.lo < y.lo)) {
-            return x;
-        }
-        return y;
-    }
-
-    public static DoubleDouble max(DoubleDouble x, DoubleDouble y) {
-        if (x.hi > y.hi || (x.hi == y.hi && x.lo > y.lo)) {
-            return x;
-        }
-        return y;
-    }
-
-    public static int sgn(double x) {
-        if (x > 0) {
-            return 1;
-        }
-        if (x < 0) {
-            return -1;
-        }
-        return 0;
-    }
 
     // ***********************************************************************//
     // ************************* Simple functions ****************************//
@@ -1557,26 +1457,6 @@ public strictfp class DoubleDouble implements NumberType {
         return prod;
     }
 
-    public void powSelf(int y) {
-        DoubleDouble temp;
-        int e = y;
-        if (e < 0) {
-            e = -y;
-        }
-        temp = new DoubleDouble(this.hi, this.lo);
-        this.hi = 1;
-        this.lo = 0;
-        while (e > 0) {
-            if ((e & 1) > 0) {
-                this.mulSelf(temp);
-            }
-            temp.sqrSelf();
-            e >>= 1;
-        }
-        if (y < 0) {
-            this.recipSelf();
-        }
-    }
 
     public DoubleDouble pow(double y) {
         return this.log().mul(y).exp();
@@ -1598,288 +1478,7 @@ public strictfp class DoubleDouble implements NumberType {
         this.expSelf();
     }
 
-    public DoubleDouble root(int y) {
-        if (this.hi == 0 && this.lo == 0) {
-            return new DoubleDouble();
-        }
-        if (this.hi < 0.0 && ((y & 1) == 0)) {
-            return new DoubleDouble(Double.NaN);
-        }
 
-        if (y == 1) {
-            return this;
-        }
-        if (y == 2) {
-            double a, b, c, d, e, f, g, h;
-            g = 1 / StrictMath.sqrt(this.hi);
-            h = this.hi * g;
-            g *= 0.5;
-            a = 0x08000001 * h;
-            a += h - a;
-            b = h - a;
-            c = h * h;
-            b = ((a * a - c) + a * b * 2) + b * b;
-            a = this.lo - b;
-            f = this.lo - a;
-            e = this.hi - c;
-            d = this.hi - e;
-            d = ((this.hi - (d + e)) + (d - c)) + a;
-            c = e + d;
-            b = (d + (e - c)) + ((this.lo - (f + a)) + (f - b));
-            a = c + b;
-            b += (c - a);
-            c = 0x08000001 * a;
-            c += a - c;
-            d = a - c;
-            e = 0x08000001 * g;
-            e += g - e;
-            f = g - e;
-            a = a * g;
-            e = ((c * e - a) + (c * f + d * e)) + d * f;
-            e += b * g;
-            b = a + e;
-            e += a - b;
-            f = b + h;
-            c = b - f;
-            return new DoubleDouble(f, e + ((b - (f + c)) + (h + c)));
-        }
-
-        double a, b, c, d, e, f, g, h, i, j, k, l, m;
-        int z;
-
-        if (this.hi < 0) {
-            b = -this.hi;
-            c = -this.lo;
-        } else {
-            b = this.hi;
-            c = this.lo;
-        }
-
-        a = StrictMath.exp(StrictMath.log(b) / (-y));
-
-        z = y;
-        k = a;
-        l = 0;
-        g = 1;
-        h = 0;
-        while (z > 0) {
-            if ((z & 1) > 0) {
-                d = 0x08000001 * g;
-                d += g - d;
-                e = g - d;
-                f = 0x08000001 * k;
-                f += k - f;
-                i = k - f;
-                j = g * k;
-                h = (((d * f - j) + (d * i + e * f)) + e * i) + (h * k + g * l);
-                g = j + h;
-                h += j - g;
-            }
-            f = 0x08000001 * k;
-            f = f + (k - f);
-            i = k - f;
-            j = k * k;
-            i = ((f * f - j) + f * i * 2) + i * i;
-            i += k * l * 2;
-            i += l * l;
-            k = i + j;
-            l = i + (j - k);
-            z >>= 1;
-        }
-
-        l = 0x08000001 * b;
-        l += b - l;
-        m = b - l;
-        d = 0x08000001 * g;
-        d += g - d;
-        e = g - d;
-        f = b * g;
-        d = (((l * d - f) + (l * e + m * d)) + m * e) + (c * g + b * h);
-        e = 1 - f;
-        l = e - d;
-        m = (e - l) - d;
-        d = 0x08000001 * l;
-        d += l - d;
-        e = l - d;
-        f = 0x08000001 * a;
-        f += a - f;
-        g = a - f;
-        l *= a;
-        m *= a;
-        m += (((d * f - l) + (d * g + e * f)) + e * g);
-        d = l / y;
-        e = 0x08000001 * d;
-        e += d - e;
-        f = d - e;
-        g = 0x08000001 * y;
-        g += y - g;
-        h = y - g;
-        i = d * y;
-        j = l - i;
-        k = l - j;
-        m = (j + ((((l - (k + j)) + (k - i)) + m) - (((e * g - i) + (e * h + f * g)) + f * h))) / y;
-        e = d + a;
-        l = d - e;
-        m += (d - (e + l)) + (a + l);
-        if (this.hi < 0.0) {
-            e = -e;
-            m = -m;
-        }
-        i = 1 / e;
-        l = 0x08000001 * e;
-        l += e - l;
-        d = e - l;
-        f = 0x08000001 * i;
-        f += i - f;
-        g = i - f;
-        h = e * i;
-        m = ((1 - h) - ((((l * f - h) + (l * g + d * f)) + d * g) + m * i)) / e;
-        l = i + m;
-        return new DoubleDouble(l, m + (i - l));
-    }
-
-    public void rootSelf(int y) {
-        if (this.hi == 0 && this.lo == 0) {
-            return;
-        }
-        if (this.hi < 0.0 && ((y & 1) == 0)) {
-            this.hi = Double.NaN;
-            return;
-        }
-
-        if (y == 1) {
-            return;
-        }
-        if (y == 2) {
-            double a, b, c, d, e, f, g, h;
-            g = 1 / StrictMath.sqrt(this.hi);
-            h = this.hi * g;
-            g *= 0.5;
-            a = 0x08000001 * h;
-            a += h - a;
-            b = h - a;
-            c = h * h;
-            b = ((a * a - c) + a * b * 2) + b * b;
-            a = this.lo - b;
-            f = this.lo - a;
-            e = this.hi - c;
-            d = this.hi - e;
-            d = ((this.hi - (d + e)) + (d - c)) + a;
-            c = e + d;
-            b = (d + (e - c)) + ((this.lo - (f + a)) + (f - b));
-            a = c + b;
-            b += (c - a);
-            c = 0x08000001 * a;
-            c += a - c;
-            d = a - c;
-            e = 0x08000001 * g;
-            e += g - e;
-            f = g - e;
-            a = a * g;
-            e = ((c * e - a) + (c * f + d * e)) + d * f;
-            e += b * g;
-            b = a + e;
-            e += a - b;
-            this.hi = b + h;
-            c = b - this.hi;
-            this.lo = e + ((b - (this.hi + c)) + (h + c));
-            return;
-        }
-
-        double a, b, c, d, e, f, g, h, i, j, k, l, m;
-        int z;
-
-        if (this.hi < 0) {
-            b = -this.hi;
-            c = -this.lo;
-        } else {
-            b = this.hi;
-            c = this.lo;
-        }
-
-        a = StrictMath.exp(StrictMath.log(b) / (-y));
-
-        z = y;
-        k = a;
-        l = 0;
-        g = 1;
-        h = 0;
-        while (z > 0) {
-            if ((z & 1) > 0) {
-                d = 0x08000001 * g;
-                d += g - d;
-                e = g - d;
-                f = 0x08000001 * k;
-                f += k - f;
-                i = k - f;
-                j = g * k;
-                h = (((d * f - j) + (d * i + e * f)) + e * i) + (h * k + g * l);
-                g = j + h;
-                h += j - g;
-            }
-            f = 0x08000001 * k;
-            f = f + (k - f);
-            i = k - f;
-            j = k * k;
-            i = ((f * f - j) + f * i * 2) + i * i;
-            i += k * l * 2;
-            i += l * l;
-            k = i + j;
-            l = i + (j - k);
-            z >>= 1;
-        }
-
-        l = 0x08000001 * b;
-        l += b - l;
-        m = b - l;
-        d = 0x08000001 * g;
-        d += g - d;
-        e = g - d;
-        f = b * g;
-        d = (((l * d - f) + (l * e + m * d)) + m * e) + (c * g + b * h);
-        e = 1 - f;
-        l = e - d;
-        m = (e - l) - d;
-        d = 0x08000001 * l;
-        d += l - d;
-        e = l - d;
-        f = 0x08000001 * a;
-        f += a - f;
-        g = a - f;
-        l *= a;
-        m *= a;
-        m += (((d * f - l) + (d * g + e * f)) + e * g);
-        d = l / y;
-        e = 0x08000001 * d;
-        e += d - e;
-        f = d - e;
-        g = 0x08000001 * y;
-        g += y - g;
-        h = y - g;
-        i = d * y;
-        j = l - i;
-        k = l - j;
-        m = (j + ((((l - (k + j)) + (k - i)) + m) - (((e * g - i) + (e * h + f * g)) + f * h))) / y;
-        e = d + a;
-        l = d - e;
-        m += (d - (e + l)) + (a + l);
-        if (this.hi < 0.0) {
-            e = -e;
-            m = -m;
-        }
-        i = 1 / e;
-        l = 0x08000001 * e;
-        l += e - l;
-        d = e - l;
-        f = 0x08000001 * i;
-        f += i - f;
-        g = i - f;
-        h = e * i;
-        m = ((1 - h) - ((((l * f - h) + (l * g + d * f)) + d * g) + m * i)) / e;
-        l = i + m;
-        this.hi = l;
-        this.lo = m + (i - l);
-    }
 
     public DoubleDouble root(double y) {
         return this.log().div(y).exp();
@@ -1891,14 +1490,6 @@ public strictfp class DoubleDouble implements NumberType {
         this.expSelf();
     }
 
-    public DoubleDouble rootr(double y) {
-        return this.divr(StrictMath.log(y)).exp();
-    }
-
-    public void rootrSelf(double y) {
-        this.divrSelf(StrictMath.log(y));
-        this.expSelf();
-    }
 
     public DoubleDouble root(DoubleDouble y) {
         return this.log().div(y).exp();

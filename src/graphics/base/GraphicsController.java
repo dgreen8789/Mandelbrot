@@ -8,7 +8,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import static math.FractalRenderer.NUMBER_SYSTEMS;
+import java.util.Arrays;
 import math.JuliaRenderer;
 import math.MRectangle;
 import math.MandelbrotRenderer;
@@ -22,10 +22,11 @@ import math.numbertypes.NumberType;
 public class GraphicsController {
 
     public enum GraphicsOperation {
-        WINDOW_ZOOM_IN_UPDATE, WINDOW_ZOOM_OUT_UPDATE, WINDOW_PAN_UP_UPDATE, WINDOW_PAN_DOWN_UPDATE,
-        WINDOW_PAN_LEFT_UPDATE, WINDOW_PAN_RIGHT_UPDATE, WINDOW_COLOR_UPDATE, REFRESH,
-        SUPER_SAMPLE_TOGGLE, INCREASE_SUPER_SAMPLE, DECREASE_SUPER_SAMPLE,
-        SHOW_BOXES, JULIA_KEY
+        WINDOW_HARD_ZOOM_IN_UPDATE, WINDOW_HARD_ZOOM_OUT_UPDATE, WINDOW_PAN_UP_UPDATE,
+        WINDOW_PAN_DOWN_UPDATE, WINDOW_PAN_LEFT_UPDATE, WINDOW_PAN_RIGHT_UPDATE,
+        WINDOW_COLOR_UPDATE, REFRESH, SUPER_SAMPLE_TOGGLE, INCREASE_SUPER_SAMPLE,
+        DECREASE_SUPER_SAMPLE, SHOW_BOXES, JULIA_KEY, TILT_FORWARD, TILT_BACKWARD,
+        SAVE_TO_FILE, WINDOW_SOFT_ZOOM_IN_UPDATE, WINDOW_SOFT_ZOOM_OUT_UPDATE
     }
     public static final int ANYTHING = 7;
     public static int MAX_SHIFT_DISTANCE;
@@ -33,6 +34,9 @@ public class GraphicsController {
     private static final double CONST_PAN_COEFF = 0;
     private static final double LINEAR_PAN_COEFF = 1;
     private static final double QUADRATIC_PAN_COEFF = 1;
+    private static final double DELTA_THETA = Math.PI / 25;
+    public static final double THETA_MAX = Math.PI / 2;
+    public static final double THETA_MIN = 0;
     private static final int TARGET_SIZE = 20;
 
     public static final int THREAD_COUNT = 4;
@@ -45,10 +49,12 @@ public class GraphicsController {
     private final int height;
     private static final boolean SAVE_IMAGES_TO_FILE = true;
     private static final String IMAGE_PATH = "Z:\\Mandelbrot Image Logs";
-    private Point targetLocation;
+
+    private final Point targetLocation;
     private boolean targetActive;
     private InputHandler inputHandler;
     private final ImageWriter writer;
+    private double viewingAngle;
 
     public GraphicsController(int w, int h, Insets insets) {
         this.width = w - insets.right - insets.left;
@@ -57,15 +63,16 @@ public class GraphicsController {
         currentRenderer = 0;
         calculators = new FractalRenderer[2];
         calculators[0] = new MandelbrotRenderer(width, height, 0);
-        DoubleNT c0 = new DoubleNT(-.745429);
-        DoubleNT c1 = new DoubleNT(.113008);
+        calculators[0].resetData();
+        DoubleNT c0 = new DoubleNT(500);
+        DoubleNT c1 = new DoubleNT(500);
         calculators[1] = new JuliaRenderer(width, height, 0, c0, c1);
         schemes = ColorScheme.values();
         writer = SAVE_IMAGES_TO_FILE ? new ImageWriter(IMAGE_PATH, width, height) : null;
         MAX_SHIFT_DISTANCE = Math.min(w, h) - 1;
-        calculators[0].draw();
         targetLocation = new Point(width / 2, height / 2);
         targetActive = false;
+        viewingAngle = THETA_MAX;
 
         //oldSS = -1;
     }
@@ -79,104 +86,129 @@ public class GraphicsController {
     private GraphicsOperation lastCommand;
 
     void render(Graphics2D g, ArrayList<GraphicsOperation> input) {
-        boolean doneRendering = calculators[currentRenderer].doneRendering();
+        //System.out.println(input.contains(g));
         if ((input.contains(GraphicsOperation.JULIA_KEY))) {
+            //System.out.println("PRESSED");
             if (currentRenderer == 1) {
-                currentRenderer = ++currentRenderer % calculators.length;
-                input.clear();
-            } else if (targetActive && doneRendering) {
+                targetActive = false;
+                currentRenderer = 0;
+            } else if (targetActive) {
                 NumberType[] c = calculators[currentRenderer].coordinateByPoint(targetLocation);
                 ((JuliaRenderer) calculators[1]).setConstant(c[0], c[1]);
                 calculators[1].resetWindow();
+                calculators[1].resetData();
                 calculators[1].draw();
                 currentRenderer = ++currentRenderer % calculators.length;
                 targetActive = false;
                 input.clear();
             } else {
                 input.remove(GraphicsOperation.JULIA_KEY);
+                //lastCommand = null;
                 targetActive = true;
             }
             lastCommand = GraphicsOperation.JULIA_KEY;
-            return;
+            //return;
         }
-        if (doneRendering) {
-            int panDistance = determineShiftDistance(numShifts);
-            if (!input.isEmpty()) {
-                if (writer != null) {
-                    writer.writeToFile(calculators[currentRenderer].getImage(), calculators[currentRenderer].getWindow());
-                }
-                if (input.contains(GraphicsOperation.WINDOW_ZOOM_IN_UPDATE)) {
-                    calculators[currentRenderer].getHistogram().reset();
-                    calculators[currentRenderer].zoom(true, inputHandler.getMousePoint());
-                    lastCommand = GraphicsOperation.WINDOW_ZOOM_IN_UPDATE;
-                }
-                if (input.contains(GraphicsOperation.WINDOW_ZOOM_OUT_UPDATE)) {
-                    calculators[currentRenderer].getHistogram().reset();
-                    calculators[currentRenderer].zoom(false, inputHandler.getMousePoint());
-                    lastCommand = GraphicsOperation.WINDOW_ZOOM_OUT_UPDATE;
-                }
-                while (calculators[1].getCurrentSystem() != calculators[0].getCurrentSystem()) {
-                    Class nextSystem = NUMBER_SYSTEMS[(calculators[1].getCurrentSystem() + 1) % NUMBER_SYSTEMS.length];
-                    calculators[1].changeNumberSystem(nextSystem);
-                }
+        if (input.contains(GraphicsOperation.TILT_BACKWARD)) {
 
-                if (input.contains(GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE)) {
-                    if (lastCommand == GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE) {
-                        numShifts++;
-                    } else {
-                        numShifts = 1;
-                    }
-                    lastCommand = GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE;
-                    if (targetActive) {
-                        targetLocation.translate(Math.min(width - targetLocation.x, panDistance), 0);
-                    } else {
-                        calculators[currentRenderer].panRight(panDistance);
-                    }
-                }
-                if (input.contains(GraphicsOperation.WINDOW_PAN_LEFT_UPDATE)) {
-                    if (lastCommand == GraphicsOperation.WINDOW_PAN_LEFT_UPDATE) {
-                        numShifts++;
-                    } else {
-                        numShifts = 1;
-                    }
-                    lastCommand = GraphicsOperation.WINDOW_PAN_LEFT_UPDATE;
-                    if (targetActive) {
-                        targetLocation.translate(-Math.min(targetLocation.x, panDistance), 0);
-                    } else {
-                        calculators[currentRenderer].panLeft(panDistance);
-                    }
-                }
-                if (input.contains(GraphicsOperation.WINDOW_PAN_DOWN_UPDATE)) {
-                    if (lastCommand == GraphicsOperation.WINDOW_PAN_DOWN_UPDATE) {
-                        numShifts++;
-                    } else {
-                        numShifts = 1;
-                    }
-                    lastCommand = GraphicsOperation.WINDOW_PAN_DOWN_UPDATE;
-                    if (targetActive) {
-                        targetLocation.translate(0, Math.min(height - targetLocation.y, panDistance));
-                    } else {
-                        calculators[currentRenderer].panDown(panDistance);
-                    }
-                }
-                if (input.contains(GraphicsOperation.WINDOW_PAN_UP_UPDATE)) {
-                    if (lastCommand == GraphicsOperation.WINDOW_PAN_UP_UPDATE) {
-                        numShifts++;
-                    } else {
-                        numShifts = 1;
-                    }
-                    lastCommand = GraphicsOperation.WINDOW_PAN_UP_UPDATE;
-                    if (targetActive) {
-                        targetLocation.translate(0, -Math.min(targetLocation.y, panDistance));
-                    } else {
-                        calculators[currentRenderer].panUp(panDistance);
-                    }
-                }
+            viewingAngle = Math.min(THETA_MAX, viewingAngle - DELTA_THETA);
+            input.remove(GraphicsOperation.TILT_BACKWARD);
+        }
+        if (input.contains(GraphicsOperation.TILT_FORWARD)) {
+            viewingAngle = Math.max(THETA_MIN, viewingAngle + DELTA_THETA);
+            input.remove(GraphicsOperation.TILT_FORWARD);
+        }
+        int panDistance = determineShiftDistance(numShifts);
+        if (!input.isEmpty()) {
+            if (writer != null && input.contains(GraphicsOperation.SAVE_TO_FILE)) {
+                writer.writeToFile(calculators[currentRenderer].getImage(), calculators[currentRenderer].getWindow());
+            }
+            if (input.contains(GraphicsOperation.WINDOW_HARD_ZOOM_IN_UPDATE)) {
+                calculators[currentRenderer].getHistogram().reset();
+                calculators[currentRenderer].zoom(true, inputHandler.getMousePoint(), MandelbrotRenderer.HARD_ZOOM_FACTOR);
+                lastCommand = GraphicsOperation.WINDOW_HARD_ZOOM_IN_UPDATE;
+            } else if (input.contains(GraphicsOperation.WINDOW_SOFT_ZOOM_IN_UPDATE)) {
+                calculators[currentRenderer].getHistogram().reset();
+                calculators[currentRenderer].zoom(true, inputHandler.getMousePoint(),
+                        inputHandler.getScrollDistance() * MandelbrotRenderer.SOFT_ZOOM_FACTOR);
+                lastCommand = GraphicsOperation.WINDOW_SOFT_ZOOM_IN_UPDATE;
+            }
+            if (input.contains(GraphicsOperation.WINDOW_HARD_ZOOM_OUT_UPDATE)) {
+                calculators[currentRenderer].getHistogram().reset();
 
-                if ((input.contains(GraphicsOperation.REFRESH))) {
-                    calculators[currentRenderer].draw();
-                    lastCommand = GraphicsOperation.REFRESH;
+                calculators[currentRenderer].zoom(false, inputHandler.getMousePoint(), MandelbrotRenderer.HARD_ZOOM_FACTOR);
+                lastCommand = GraphicsOperation.WINDOW_HARD_ZOOM_OUT_UPDATE;
+            } else if (input.contains(GraphicsOperation.WINDOW_SOFT_ZOOM_OUT_UPDATE)) {
+                calculators[currentRenderer].getHistogram().reset();
+                calculators[currentRenderer].zoom(false, inputHandler.getMousePoint(),
+                        inputHandler.getScrollDistance() * MandelbrotRenderer.SOFT_ZOOM_FACTOR);
+                lastCommand = GraphicsOperation.WINDOW_SOFT_ZOOM_OUT_UPDATE;
+            }
+//            while (calculators[1].getCurrentSystem() != calculators[0].getCurrentSystem()) {
+//                Class nextSystem = NUMBER_SYSTEMS[(calculators[1].getCurrentSystem() + 1) % NUMBER_SYSTEMS.length];
+//                calculators[1].changeNumberSystem(nextSystem);
+//            }
+
+            if (input.contains(GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE)) {
+                if (lastCommand == GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE) {
+                    numShifts++;
+                } else {
+                    numShifts = 1;
                 }
+                lastCommand = GraphicsOperation.WINDOW_PAN_RIGHT_UPDATE;
+                if (targetActive) {
+                    targetLocation.translate(Math.min(width - targetLocation.x, panDistance), 0);
+                } else {
+                    calculators[currentRenderer].panRight(panDistance);
+                }
+            }
+            if (input.contains(GraphicsOperation.WINDOW_PAN_LEFT_UPDATE)) {
+                if (lastCommand == GraphicsOperation.WINDOW_PAN_LEFT_UPDATE) {
+                    numShifts++;
+                } else {
+                    numShifts = 1;
+                }
+                lastCommand = GraphicsOperation.WINDOW_PAN_LEFT_UPDATE;
+                if (targetActive) {
+                    targetLocation.translate(-Math.min(targetLocation.x, panDistance), 0);
+                } else {
+                    calculators[currentRenderer].panLeft(panDistance);
+                }
+            }
+            if (input.contains(GraphicsOperation.WINDOW_PAN_DOWN_UPDATE)) {
+                if (lastCommand == GraphicsOperation.WINDOW_PAN_DOWN_UPDATE) {
+                    numShifts++;
+                } else {
+                    numShifts = 1;
+                }
+                lastCommand = GraphicsOperation.WINDOW_PAN_DOWN_UPDATE;
+                if (targetActive) {
+                    targetLocation.translate(0, Math.min(height - targetLocation.y, panDistance));
+                } else {
+                    calculators[currentRenderer].panDown(panDistance);
+                }
+            }
+            if (input.contains(GraphicsOperation.WINDOW_PAN_UP_UPDATE)) {
+                if (lastCommand == GraphicsOperation.WINDOW_PAN_UP_UPDATE) {
+                    numShifts++;
+                } else {
+                    numShifts = 1;
+                }
+                lastCommand = GraphicsOperation.WINDOW_PAN_UP_UPDATE;
+                if (targetActive) {
+                    targetLocation.translate(0, -Math.min(targetLocation.y, panDistance));
+                } else {
+                    calculators[currentRenderer].panUp(panDistance);
+                }
+            }
+
+            if ((input.contains(GraphicsOperation.REFRESH))) {
+                System.out.println("called");
+                System.out.println(calculators[currentRenderer].getWindow());
+                calculators[currentRenderer].draw();
+                lastCommand = GraphicsOperation.REFRESH;
+            }
+            //System.out.println(Arrays.deepToString(calculators[currentRenderer].getDataArray()));
 
 //                if ((input.contains(GraphicsOperation.SUPER_SAMPLE_TOGGLE))) {
 //                    superSample = !superSample;
@@ -188,10 +220,10 @@ public class GraphicsController {
 //                oldSS = superSampleFactor;
 //
 //            }
-            }
-        } else {
-
         }
+        // } else {
+
+        //}
         if (input.contains(GraphicsOperation.WINDOW_COLOR_UPDATE)) {
             lastCommand = GraphicsOperation.WINDOW_COLOR_UPDATE;
             colorScheme = ++colorScheme % schemes.length;
@@ -201,11 +233,8 @@ public class GraphicsController {
             drawBoxes = !drawBoxes;
             input.remove(GraphicsOperation.SHOW_BOXES);
         }
-        if (doneRendering) {
-            input.clear();
-        }
-        BufferedImage img = calculators[currentRenderer].createImage(true, schemes[colorScheme]);
-
+        input.clear();
+        BufferedImage img = calculators[currentRenderer].createImage(true, schemes[colorScheme], viewingAngle);
         g.setColor(Color.red);
         String str = calculators[currentRenderer].getWindow().toPresentationString();
         g.drawImage(img, null, 0, 0);
@@ -265,7 +294,7 @@ public class GraphicsController {
         int yTop = Math.min(size, y);
         int yBot = Math.min(size, height - y);
         g.fillRect(x, y, 1, 1);
-        
+
         g.drawLine(x, y - 1, x, y - yTop);
         g.drawLine(x, y + 1, x, y + yBot);
         g.drawLine(x - 1, y, x - xLeft, y);

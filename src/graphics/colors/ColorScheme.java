@@ -12,6 +12,7 @@ import java.util.stream.IntStream;
 public enum ColorScheme {
 
     BLACK_AND_WHITE,
+    WHITE_AND_BLACK,
     FIRE,
     BLUE;
     private static final TreeMap<Integer, Integer> colors = new TreeMap<>();
@@ -27,13 +28,18 @@ public enum ColorScheme {
      * Does nothing on invalid scheme code
      */
     public static TreeMap<Integer, Integer> generate(Histogram histogram, ColorScheme scheme) {
-       // long start = System.currentTimeMillis();
+        //long start = System.currentTimeMillis();
         int[][] arr = histogram.toIntArray();
-        if(arr == null) return null;
+        if (arr == null) {
+            return null;
+        }
         colors.clear();
         switch (scheme) {
             case BLACK_AND_WHITE:
                 bw(arr);
+                break;
+            case WHITE_AND_BLACK:
+                wb(arr);
                 break;
             case FIRE:
                 fire(arr);
@@ -42,7 +48,7 @@ public enum ColorScheme {
                 blue(arr);
                 break;
         }
-        // stop = System.currentTimeMillis();
+        //long stop = System.currentTimeMillis();
         //System.out.println("Color generation took " + (stop - start) + " ms");
         return colors;
     }
@@ -52,6 +58,13 @@ public enum ColorScheme {
         double len = data[1].length;
         IntStream.range(0, data[1].length).forEach(x -> colors.put(data[0][x],
                 rgbaToColorCode(255, 255, 255, (int) (255 * Math.sqrt(x / len)))));
+    }
+
+    public static void wb(int[][] data) {
+
+        double len = data[1].length;
+        IntStream.range(0, data[1].length).forEach(x -> colors.put(data[0][x],
+                rgbaToColorCode(255, 255, 255, (int) (255 - 255 * Math.sqrt(x / len)))));
     }
 
     public static void fire(int[][] data) {

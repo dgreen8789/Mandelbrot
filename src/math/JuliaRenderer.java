@@ -38,21 +38,24 @@ public class JuliaRenderer extends MandelbrotRenderer {
 //        return connected;
 //    }
     @Override
-    protected void beginRender() {
+    protected void beginRender(boolean killThreads) {
         outPool = new Pool<>();
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new JBoxedEscape(xCoords, yCoords, data, histogram);
-            ((JBoxedEscape) threads[i]).setX0(x0);
-            ((JBoxedEscape) threads[i]).setY0(y0);
-            threads[i].setInPool(inPool);
-            threads[i].setOutPool(outPool);
-
-            threads[i].setName("Drawer thread " + i);
-            threads[i].start();
-            System.out.println("Thread: " + threads[i].getName() + " started");
-
+            if (killThreads) {
+                if (threads[i] != null) {
+                    threads[i].kill();
+                }
+                threads[i] = new JBoxedEscape(xCoords, yCoords, data, histogram);
+                threads[i].setInPool(inPool);
+                ((JBoxedEscape) threads[i]).setX0(x0);
+                ((JBoxedEscape) threads[i]).setY0(y0);
+                threads[i].setOutPool(outPool);
+                threads[i].setName("Drawer thread " + i);
+                threads[i].start();
+            } else if (threads[i].getState() == Thread.State.TIMED_WAITING) {
+                threads[i].interrupt();
+            }
         }
-        done_calculating = false;
     }
 
     public void setConstant(NumberType x, NumberType y) {
@@ -70,7 +73,7 @@ public class JuliaRenderer extends MandelbrotRenderer {
     @Override
     public void resetWindow() {
         window = new Window(new DoubleNT(0), new DoubleNT(0),
-                new DoubleNT(2), new DoubleNT(1)); 
+                new DoubleNT(2), new DoubleNT(1));
     }
 
 }

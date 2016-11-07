@@ -76,6 +76,7 @@ public abstract class FractalRenderer {
     }
 
     public Window getWindow() {
+        //System.out.println("called to:\t  " + window);
         return window;
     }
 

@@ -4,6 +4,8 @@ import math.numbertypes.NumberType;
 import architecture.Pool;
 import graphics.colors.Histogram;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static math.MandelbrotRenderer.MAX_ITERATIONS;
 
 /**
@@ -165,13 +167,13 @@ public class BoxedEscape extends Thread {
                 }
             }
             histogram.increment(buffer[e.x][e.y], area);
-            e.setFilled(false);
+            e.setPixelCalculated(false);
             outPool.add(e);
             return;
         }
         if (area < 25) {
             iteratePlain(e);
-            e.setFilled(true);
+            e.setPixelCalculated(true);
             outPool.add(e);
             return;
         }
@@ -186,26 +188,19 @@ public class BoxedEscape extends Thread {
         if (Math.max(a, c) - Math.min(b, d) > area && area < 100) {
             //System.out.println((a - b) + "\t" + e.width + e.height);
             iteratePlain(e);
-            e.setFilled(true);
+            e.setPixelCalculated(true);
             outPool.add(e);
         } else {
-            split(e, inPool);
+            MRectangle.split(e, inPool);
             //System.out.println(inPool.getValues());
         }
-
+//        try {
+//            //slows renderer down
+//            Thread.sleep(25);
+//        } catch (InterruptedException ex) {
+//        }
     }
 
-    public static void split(MRectangle e, Pool<MRectangle> o) {
-        //System.out.print("Before: " + o.size());
-        int dx = e.width / 2;
-        int dy = e.height / 2;
-        //System.out.println("splitting");
-        o.add(new MRectangle(e.x, e.y, dx, dy));
-        o.add(new MRectangle(e.x + dx, e.y, dx + e.width % 2, dy));
-        o.add(new MRectangle(e.x, e.y + dy, dx, dy + e.height % 2));
-        o.add(new MRectangle(e.x + dx, e.y + dy, dx + e.width % 2, dy + e.height % 2));
-       // System.out.println("\tAfter: " + o.size());
-    }
 
     public void setxCoords(NumberType[] xCoords) {
         this.xCoords = xCoords;

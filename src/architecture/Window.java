@@ -61,24 +61,27 @@ public class Window {
     }
 
     public String toPresentationString() {
-
         return presentationString;
     }
 
     public void shiftRight(NumberType amt) {
         xCenter = xCenter.add(amt);
+        generatePresentationString();
     }
 
     public void shiftLeft(NumberType amt) {
         xCenter = xCenter.subtract(amt);
+        generatePresentationString();
     }
 
     public void shiftUp(NumberType amt) {
         yCenter = yCenter.add(amt);
+        generatePresentationString();
     }
 
     public void shiftDown(NumberType amt) {
         yCenter = yCenter.subtract(amt);
+        generatePresentationString();
     }
 
     public double getZoomLevel() {
@@ -87,6 +90,7 @@ public class Window {
 
     public void setZoomLevel(double zoomLevel) {
         this.zoomLevel = Math.pow(10, zoomLevel);
+        generatePresentationString();
     }
 
 }

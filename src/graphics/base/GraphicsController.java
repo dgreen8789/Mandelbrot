@@ -48,7 +48,7 @@ public class GraphicsController {
     private final int width;
     private final int height;
     private static final boolean SAVE_IMAGES_TO_FILE = true;
-    private static final String IMAGE_PATH = "Z:\\Mandelbrot Image Logs";
+    private static final String IMAGE_PATH = "C:\\Mandelbrot Image Logs";
 
     private final Point targetLocation;
     private boolean targetActive;
@@ -130,7 +130,7 @@ public class GraphicsController {
             } else if (input.contains(GraphicsOperation.WINDOW_SOFT_ZOOM_IN_UPDATE)) {
                 calculators[currentRenderer].getHistogram().reset();
                 calculators[currentRenderer].zoom(true, inputHandler.getMousePoint(),
-                        inputHandler.getScrollDistance() * MandelbrotRenderer.SOFT_ZOOM_FACTOR);
+                        Math.pow(MandelbrotRenderer.SOFT_ZOOM_FACTOR, inputHandler.getScrollDistance()));
                 lastCommand = GraphicsOperation.WINDOW_SOFT_ZOOM_IN_UPDATE;
             }
             if (input.contains(GraphicsOperation.WINDOW_HARD_ZOOM_OUT_UPDATE)) {
@@ -141,7 +141,7 @@ public class GraphicsController {
             } else if (input.contains(GraphicsOperation.WINDOW_SOFT_ZOOM_OUT_UPDATE)) {
                 calculators[currentRenderer].getHistogram().reset();
                 calculators[currentRenderer].zoom(false, inputHandler.getMousePoint(),
-                        inputHandler.getScrollDistance() * MandelbrotRenderer.SOFT_ZOOM_FACTOR);
+                        Math.pow(MandelbrotRenderer.SOFT_ZOOM_FACTOR, inputHandler.getScrollDistance()));
                 lastCommand = GraphicsOperation.WINDOW_SOFT_ZOOM_OUT_UPDATE;
             }
 //            while (calculators[1].getCurrentSystem() != calculators[0].getCurrentSystem()) {
@@ -253,11 +253,16 @@ public class GraphicsController {
             for (MRectangle r : calculators[currentRenderer].getBoxes()) {
                 if (r == null) {
                 } else //System.out.println(r);
-                 if (r.isFilled()) {
+                 if (r.isPixelCalculated()) {
+
                         g.setColor(Color.MAGENTA);
-                        g.fill(r);
+                        g.draw(r);
                     } else {
-                        g.setColor(Color.BLUE);
+                        if (r.isIsHistorical()) {
+                            g.setColor(Color.CYAN);
+                        } else {
+                            g.setColor(Color.BLUE);
+                        }
                         g.draw(r);
                     }
             }

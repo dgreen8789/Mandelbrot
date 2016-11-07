@@ -5,7 +5,9 @@
  */
 package math;
 
+import architecture.Pool;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 
 /**
  *
@@ -13,32 +15,33 @@ import java.awt.Rectangle;
  */
 public class MRectangle extends Rectangle implements Comparable {
 
-    private boolean filled;
+    private boolean pixelCalculated;
+    private boolean isHistorical;
 
     public MRectangle(boolean filled, int x, int y, int width, int height) {
         super(x, y, width, height);
-        this.filled = filled;
+        this.pixelCalculated = filled;
     }
 
     public MRectangle(int x, int y, int width, int height) {
         super(x, y, width, height);
-        filled = false;
+        pixelCalculated = false;
     }
 
-    public boolean isFilled() {
-        return filled;
+    public boolean isPixelCalculated() {
+        return pixelCalculated;
     }
 
-    public void setFilled(boolean filled) {
-        this.filled = filled;
+    public void setPixelCalculated(boolean pixelCalculated) {
+        this.pixelCalculated = pixelCalculated;
     }
 
     public int compareTo(Object o) {
         MRectangle x;
         if (o instanceof MRectangle) {
             x = (MRectangle) o;
-            if (filled ^ x.filled) {
-                return filled ? -1 : 1;
+            if (pixelCalculated ^ x.pixelCalculated) {
+                return pixelCalculated ? -1 : 1;
             }
             return this.x == x.x ? this.y - x.y : this.x - x.x;
         } else {
@@ -49,6 +52,7 @@ public class MRectangle extends Rectangle implements Comparable {
     //lifted straight from java source to avoid extra instantiation;
     //changed some longs to ints because extra size was unnessacary
     //removed safety checks for underflow
+    @Override
     public MRectangle intersection(Rectangle r) {
         int tx1 = this.x;
         int ty1 = this.y;
@@ -78,4 +82,42 @@ public class MRectangle extends Rectangle implements Comparable {
         ty2 -= ty1;
         return new MRectangle(tx1, ty1, (int) tx2, (int) ty2);
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + "\tfilled=" + pixelCalculated;
+    }
+
+    public boolean isIsHistorical() {
+        return isHistorical;
+    }
+
+    public void setIsHistorical(boolean isHistorical) {
+        this.isHistorical = isHistorical;
+    }
+
+    public static void split(MRectangle e, Pool<MRectangle> o) {
+        //System.out.print("Before: " + o.size());
+        int dx = e.width / 2;
+        int dy = e.height / 2;
+        //System.out.println("splitting");
+        o.add(new MRectangle(e.x, e.y, dx, dy));
+        o.add(new MRectangle(e.x + dx, e.y, dx + e.width % 2, dy));
+        o.add(new MRectangle(e.x, e.y + dy, dx, dy + e.height % 2));
+        o.add(new MRectangle(e.x + dx, e.y + dy, dx + e.width % 2, dy + e.height % 2));
+        // System.out.println("\tAfter: " + o.size());
+    }
+
+    public static void split(MRectangle e, ArrayList<MRectangle> o, int pos) {
+        //System.out.print("Before: " + o.size());
+        int dx = e.width / 2;
+        int dy = e.height / 2;
+        //System.out.println("splitting");
+        o.add(pos, new MRectangle(e.x, e.y, dx, dy));
+        o.add(pos, new MRectangle(e.x + dx, e.y, dx + e.width % 2, dy));
+        o.add(pos, new MRectangle(e.x, e.y + dy, dx, dy + e.height % 2));
+        o.add(pos, new MRectangle(e.x + dx, e.y + dy, dx + e.width % 2, dy + e.height % 2));
+        // System.out.println("\tAfter: " + o.size());
+    }
+
 }

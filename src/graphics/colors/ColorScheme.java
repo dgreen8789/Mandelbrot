@@ -82,15 +82,16 @@ public enum ColorScheme {
 
     private static void blue(int[][] data) {
         double len = data[1].length;
-        double constant = Math.pow(Math.E / Math.PI, 9);
+        double constant = Math.pow(Math.E / Math.PI, 5);
         IntStream.range(0, data[1].length).asDoubleStream().forEach(x -> colors.put(data[0][(int) x], rgbaToColorCode(
                 (int) (255 * Math.pow(x / len, constant)),
                 0,
                 255,
                 (int) (20 + 230 * (Math.cbrt(x / len))))
         ));
-        colors.put(colors.lastKey(), 0);
-    }
+ if (len > 0) {
+            colors.put(colors.lastKey(), 0);
+        }    }
 
     private static int rgbaToColorCode(int r, int g, int b, int a) {
         return ((a & 0xFF) << 24)

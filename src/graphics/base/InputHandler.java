@@ -169,7 +169,7 @@ public class InputHandler implements MouseInputListener, MouseWheelListener, Key
     }
 
     public int getScrollDistance() {
-        return scrollDistance;
+        return 2;
     }
 
 }

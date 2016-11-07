@@ -18,9 +18,9 @@ import static math.BoxedEscape.NOT_CALCULATED_CONST;
  */
 public class MandelbrotRenderer extends FractalRenderer {
 
-    public static int MAX_ITERATIONS = 32_768;
+    public static int MAX_ITERATIONS = 8192;
     public static double HARD_ZOOM_FACTOR = 10.0;
-    public static double SOFT_ZOOM_FACTOR = 3 / 2;
+    public static double SOFT_ZOOM_FACTOR = 1.1;
     private final MRectangle SCREEN;
     protected int maxZoom;
     protected Pool<MRectangle> inPool;
@@ -64,30 +64,30 @@ public class MandelbrotRenderer extends FractalRenderer {
 
     public void zoom(boolean deeper, Point p, double factor) {
         NumberType[] coords = coordinateByPoint(p);
-        boolean bigzoom = factor % HARD_ZOOM_FACTOR == 0;
-        int numerator = (int) (factor / (bigzoom ? HARD_ZOOM_FACTOR : SOFT_ZOOM_FACTOR));
-        if (deeper) {
+        if (!deeper) {
+            factor = 1 / factor;
+        }
+        if (factor > 1) {
             window.zoomIn(coords[0], coords[1], factor);
         } else {
             window.zoomOut(coords[0], coords[1], factor);
         }
-        if (bigzoom) {
+        if (factor > 10) {
             System.out.println(window);
         }
-        if (deeper && bigzoom) {
-            explode(data, numerator, 10, p);
-        } else if (deeper) { //implies smallzoom
-            explode(data, 3 * numerator, 2, p);
-        } else if (bigzoom) { //implies shrink and bigzoom
-            implode(data, numerator, 10, p);
-        } else {//implies shrink and smallzoom
-            implode(data, 3 * numerator, 2, p);
+        if (factor < .1) {
+            for (int[] data1 : data) {
+                Arrays.fill(data1, NOT_CALCULATED_CONST);
+            }
+        } else {
+            scale(data, factor, p, outPool);
         }
         draw();
     }
 
     public void draw() {
         //System.out.println("called");
+        //System.out.println(window);
         if (window.getZoomLevel() > maxZoom) {
             System.out.println("Precision fail imminent, ");
             if (currentSystem < NUMBER_SYSTEMS.length - 1) {
@@ -112,8 +112,8 @@ public class MandelbrotRenderer extends FractalRenderer {
         //System.out.println(xDelta);
         //inPool.clear();
 
-        BoxedEscape.split(new MRectangle(0, 0, xCoords.length, yCoords.length), inPool);
-        outPool = new Pool<>();
+        MRectangle.split(new MRectangle(0, 0, xCoords.length, yCoords.length), inPool);
+        //outPool = new Pool<>();
         //System.out.println("pools set up");
         beginRender(true);
 
@@ -131,10 +131,10 @@ public class MandelbrotRenderer extends FractalRenderer {
             Arrays.fill(data[i], NOT_CALCULATED_CONST);
             xCoords[i] = xCoords[i - 1].add(xEpsilon);
         }
-        BoxedEscape.split(new MRectangle(xCoords.length - distance, 0, distance, yCoords.length), inPool);
+        MRectangle.split(new MRectangle(xCoords.length - distance, 0, distance, yCoords.length), inPool);
         panRectangles(-distance, 0);
-        beginRender(false);
         window.shiftRight(xEpsilon.multiply(distance));
+        beginRender(false);
 
     }
 
@@ -149,10 +149,10 @@ public class MandelbrotRenderer extends FractalRenderer {
             Arrays.fill(data[i], NOT_CALCULATED_CONST);
             xCoords[i] = xCoords[i + 1].subtract(xEpsilon);
         }
-        BoxedEscape.split(new MRectangle(0, 0, distance, yCoords.length), inPool);
+        MRectangle.split(new MRectangle(0, 0, distance, yCoords.length), inPool);
         panRectangles(distance, 0);
-        beginRender(false);
         window.shiftLeft(xEpsilon.multiply(distance));
+        beginRender(false);
 
     }
 
@@ -169,9 +169,9 @@ public class MandelbrotRenderer extends FractalRenderer {
         }
         panRectangles(0, -distance);
 
-        BoxedEscape.split(new MRectangle(0, yCoords.length - distance, xCoords.length, distance), inPool);
-        beginRender(false);
+        MRectangle.split(new MRectangle(0, yCoords.length - distance, xCoords.length, distance), inPool);
         window.shiftDown(yEpsilon.multiply(distance));
+        beginRender(false);
 
     }
 
@@ -187,13 +187,14 @@ public class MandelbrotRenderer extends FractalRenderer {
             yCoords[i] = yCoords[i + 1].add(yEpsilon);
         }
         panRectangles(0, distance);
-        BoxedEscape.split(new MRectangle(0, 0, xCoords.length, distance), inPool);
-        beginRender(false);
+        MRectangle.split(new MRectangle(0, 0, xCoords.length, distance), inPool);
         window.shiftUp(yEpsilon.multiply(distance));
+        beginRender(false);
     }
 
     protected void beginRender(boolean killThreads) {
         //System.out.println("started render");
+        System.out.println(window);
         for (int i = 0; i < threads.length; i++) {
             if (killThreads) {
                 if (threads[i] != null) {
@@ -247,26 +248,131 @@ public class MandelbrotRenderer extends FractalRenderer {
                 new DoubleNT(1.75), new DoubleNT(1));
     }
 
-    private void explode(int[][] data, int a, int b, Point newCenter) {
-        //System.out.println("exploded");
+    private void scale(int[][] data, double factor, Point newCenter, Pool<MRectangle> recs) {
+        System.out.println("Scaling factor is " + factor + " about " + newCenter);
+        //MRectangle newScreen = 
+        ArrayList<MRectangle> alist = recs.getValues();
+        MRectangle rect;
+        int value;
+        ArrayList<Integer> values = new ArrayList<>();
+        System.out.println(alist.size());
+        int shiftX0 = (SCREEN.x + SCREEN.width) / 2 - newCenter.x;
+        int shiftY0 = (SCREEN.y + SCREEN.height) / 2 - newCenter.y;
+        double oneMinusFactorCenterX = (1 - factor) * (SCREEN.x + SCREEN.width) / 2;
+        double oneMinusFactorCenterY = (1 - factor) * (SCREEN.y + SCREEN.height) / 2;
+        boolean[] edgeChecks = new boolean[4]; //top, bottom, left, right;
+        for (int i = alist.size() - 1; i > - 1; i--) {
+            rect = alist.get(i);
+            //rect.width > (b / a) && rect.height > (b / a) && 
+            boolean cond = !rect.isPixelCalculated();//&& rect.width > factor && rect.height > factor;
+            //System.out.println(rect + "-->" + cond);
+            if (cond) {
+                MRectangle r0 = (MRectangle) rect.clone();
+                value = data[rect.x + rect.width / 2][rect.y + rect.height / 2];
+                // System.out.println("Old: " + rect);
+                rect.translate(shiftX0, shiftY0);
+                rect.setFrameFromDiagonal(
+                        factor * rect.x + oneMinusFactorCenterX,
+                        factor * rect.y + oneMinusFactorCenterY,
+                        factor * (rect.x + rect.width) + oneMinusFactorCenterX,
+                        factor * (rect.y + rect.height) + oneMinusFactorCenterY);
+                //System.out.println("Scaled: " + rect);
+                //System.out.println("Scaled: " + rect);
+
+                rect = rect.intersection(SCREEN);
+                if (rect.isEmpty()) {
+                    alist.remove(i);
+                } else //System.out.println("Intersection: " + rect + "\n");
+                {
+                    edgeChecks[0] = edgeChecks[1] = edgeChecks[2] = edgeChecks[3] = false;
+                    edgeChecks(data, r0, edgeChecks, value);
+                    //System.out.println("Edge checking yielded: " + Arrays.toString(edgeChecks));
+                    if ((edgeChecks[0] && edgeChecks[1] && edgeChecks[2] && edgeChecks[3])) {
+                        rect.setPixelCalculated(false);
+                        rect.setIsHistorical(true);
+                        values.add(0, value);
+                        alist.set(i, rect);
+                    } else {
+                        alist.remove(i);
+                    }// System.out.println("Started with " + r0);
+                }                //System.out.println("Edge checking yielded: " + Arrays.toString(edgeChecks));              //System.out.println("Kept Rect: " + rect);
+            } else {
+                alist.remove(i);
+            }
+        }
         for (int[] d : data) {
             Arrays.fill(d, NOT_CALCULATED_CONST);
         }
-    }
+        for (int i = 0; i < alist.size(); i++) {
+            rect = alist.get(i);
+            //System.out.println(rect);
+            for (int x = rect.x; x < rect.x + rect.width; x++) {
+                for (int y = rect.y; y < rect.y + rect.height; y++) {
+                    data[x][y] = values.get(i);
+                }
+            }
 
-    private void implode(int[][] data, int a, int b, Point newCenter) {
-        for (int[] d : data) {
-            Arrays.fill(d, NOT_CALCULATED_CONST);
         }
-    }
+        recs.clear();
+        recs.addAll(alist);
 
- 
+    }
 
     //values in pixelspace +y is down
     private void panRectangles(int dx, int dy) {
         for (MRectangle r : outPool.getValues()) {
             r.translate(dx, dy);
             r = r.intersection(SCREEN);
+        }
+    }
+
+    private void edgeChecks(int[][] data, MRectangle rect, boolean[] b, int value) {
+        int i;
+        boolean le, re, te, be;
+        le = rect.x > 1;
+        re = rect.x + rect.width < SCREEN.width - 1;
+        te = rect.y > 1;
+        be = rect.y + rect.height < SCREEN.height - 1;
+        int yMin = rect.y - 1;
+        int yMax = yMin + rect.height + 2;
+        int xMin = rect.x - 1;
+        int xMax = xMin + rect.width + 2;
+        if (re && le) {
+
+            i = xMin;
+            if (te) {
+                while (data[i][yMin] == value && (i < xMax)) {
+                    i++;
+                }
+            }
+            b[0] = i == xMax;
+            i = xMin;
+            if (be) {
+                while (data[i][yMax] == value && (i < xMax)) {
+                    i++;
+                }
+            }
+            b[1] = i == xMax;
+        } else {
+            b[0] = b[1] = false;
+        }
+        if (te && be) {
+            i = yMin;
+            if (le) {
+                while (data[rect.x - 1][i] == value && i < yMax) {
+                    i++;
+                }
+            }
+            b[2] = i == yMax;
+            i = yMin;
+            if (re) {
+                while (data[xMax][i] == value && i < yMax) {
+                    i++;
+                }
+            }
+            b[3] = i == yMax;
+        } else {
+            b[2] = b[3] = false;
         }
     }
 

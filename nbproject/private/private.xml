@@ -5,7 +5,7 @@
             <url>src/graphics/colors/Histogram.java</url>
             <bookmark id="1">
                 <name/>
-                <line>17</line>
+                <line>16</line>
                 <key/>
             </bookmark>
         </file>
@@ -13,7 +13,7 @@
             <url>src/graphics/base/GraphicsController.java</url>
             <bookmark id="2">
                 <name/>
-                <line>47</line>
+                <line>54</line>
                 <key/>
             </bookmark>
         </file>
@@ -21,11 +21,9 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/main/test.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/DoubleDoubleNumberType.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/MandelbrotCalculator.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/Main.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/DoubleNumberType.java</file>
-            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/QuadDoubleNumberType.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/architecture/Window.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/graphics/base/GraphicsController.java</file>
+            <file>file:/C:/Users/David/Documents/NetBeansProjects/Mandelbrot/src/math/MandelbrotRenderer.java</file>
         </group>
     </open-files>
 </project-private>

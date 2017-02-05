@@ -13,7 +13,7 @@ import math.numbertypes.NumberType;
  *
  * @author David
  */
-public strictfp class QuadDouble implements NumberType, Cloneable {
+public strictfp class QuadDouble extends NumberType implements Cloneable {
 
     private double a0, a1, a2, a3, r0, r1, r2;
 
@@ -626,6 +626,11 @@ public strictfp class QuadDouble implements NumberType, Cloneable {
     @Override
     public int JEscape(NumberType x0, NumberType y0, NumberType c0, NumberType c1, HashSet<Integer> hashes, int MAX_ITERATIONS) {
         return -1;
+    }
+
+    @Override
+    public int getRelativePrecision() {
+        return 4;
     }
 
 }

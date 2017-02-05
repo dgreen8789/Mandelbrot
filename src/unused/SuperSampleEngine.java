@@ -46,7 +46,7 @@ public class SuperSampleEngine {
             }
             final int[][] ssBuffer = new int[xCoordsSS.length][yCoordsSS.length];
             for (int[] is : ssBuffer) {
-                Arrays.fill(is, BoxedEscape.NOT_CALCULATED_CONST);
+               // Arrays.fill(is, BoxedEscape.NOT_CALCULATED_CONST);
             }
             System.out.println("Super sample buffer is " + ssBuffer.length + " x " + ssBuffer[0].length);
             for (int i = 0; i < data.length; i++) {
@@ -56,7 +56,7 @@ public class SuperSampleEngine {
             }
             Pool<MRectangle> inPool = scale(boxes, factor, data.length / 2, data[0].length / 2);
             for (BoxedEscape x : threads) {
-                x.setBuffer(ssBuffer);
+                x.setData(ssBuffer);
                 x.setInPool(inPool);
                 x.setOutPool(outPool);
                 x.setxCoords(xCoordsSS);

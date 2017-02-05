@@ -16,6 +16,7 @@ import java.util.ArrayList;
 public class MRectangle extends Rectangle implements Comparable {
 
     private boolean pixelCalculated;
+    private int value;
     private boolean isHistorical;
 
     public MRectangle(boolean filled, int x, int y, int width, int height) {
@@ -80,7 +81,7 @@ public class MRectangle extends Rectangle implements Comparable {
         }
         tx2 -= tx1;
         ty2 -= ty1;
-        return new MRectangle(tx1, ty1, (int) tx2, (int) ty2);
+        return new MRectangle(tx1, ty1, tx2, ty2);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class MRectangle extends Rectangle implements Comparable {
         return super.toString() + "\tfilled=" + pixelCalculated;
     }
 
-    public boolean isIsHistorical() {
+    public boolean isHistorical() {
         return isHistorical;
     }
 
@@ -120,4 +121,42 @@ public class MRectangle extends Rectangle implements Comparable {
         // System.out.println("\tAfter: " + o.size());
     }
 
+    void selfIntersection(MRectangle r) {
+        int tx1 = this.x;
+        int ty1 = this.y;
+        int rx1 = r.x;
+        int ry1 = r.y;
+        int tx2 = tx1;
+        tx2 += this.width;
+        int ty2 = ty1;
+        ty2 += this.height;
+        int rx2 = rx1;
+        rx2 += r.width;
+        int ry2 = ry1;
+        ry2 += r.height;
+        if (tx1 < rx1) {
+            tx1 = rx1;
+        }
+        if (ty1 < ry1) {
+            ty1 = ry1;
+        }
+        if (tx2 > rx2) {
+            tx2 = rx2;
+        }
+        if (ty2 > ry2) {
+            ty2 = ry2;
+        }
+        tx2 -= tx1;
+        ty2 -= ty1;
+        this.setBounds(tx1, ty1, tx2, ty2);
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+    
 }

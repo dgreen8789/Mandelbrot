@@ -1,6 +1,7 @@
 package graphics.colors;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -11,9 +12,11 @@ public class Histogram {
 
     private int[] histogram;
     private int counter;
+    protected AtomicInteger validPixelCounter;
 
     public Histogram(int maxVal) {
         histogram = new int[maxVal + 1];
+        validPixelCounter = new AtomicInteger(0);
     }
 
     public synchronized void reset() {
@@ -73,4 +76,9 @@ public class Histogram {
     public int get(int i) {
         return i > 0 ? histogram[i] : -1;
     }
+
+    public AtomicInteger getValidPixelCounter() {
+        return validPixelCounter;
+    }
+    
 }

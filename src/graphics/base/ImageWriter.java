@@ -27,17 +27,20 @@ public class ImageWriter {
         this.path = path;
 
         img2 = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        
+        c = 0;
         g2d = img2.createGraphics();
         g2d.setBackground(Color.BLACK);
 
     }
 
-    public void writeToFile(BufferedImage img, Window w) {
+   
+    private int c;
+    static String prefix = "img";
+    public void writeToFile(BufferedImage img, Window w, boolean staticNumbering) {
         long start = System.currentTimeMillis();
         g2d.clearRect(0, 0, img2.getWidth(), img2.getHeight());
         g2d.drawImage(img, 0, 0, null);
-        File outputfile = new File(String.format("%s\\%d_(%10s, %10s)(10^-%.4f zoom).jpg", path,start, w.xCenter, w.yCenter, w.getZoomLevel()));
+        File outputfile = new File(String.format("%s\\%s%013d.jpg",path,prefix, staticNumbering ? c++ : start));
         try {
             outputfile.createNewFile();
             ImageIO.write(img2, "jpg", outputfile);

@@ -2,6 +2,9 @@ package graphics.base;
 
 import graphics.base.GraphicsController.GraphicsOperation;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -14,13 +17,15 @@ import javax.swing.event.MouseInputListener;
  *
  * @author David
  */
-public class InputHandler implements MouseInputListener, MouseWheelListener, KeyListener {
+public class InputHandler extends ComponentAdapter implements MouseInputListener, MouseWheelListener, KeyListener {
 
     private final char UP_KEY = 'W';
     private final char DOWN_KEY = 'S';
     private final char LEFT_KEY = 'A';
     private final char RIGHT_KEY = 'D';
     private final char COLOR_KEY = 'C';
+    private final char INCREASE_PRECISION_KEY = ']';
+    private final char DECREASE_PRECISION_KEY = '[';
     private final char SUPER_SAMPLE_TOGGLE_KEY = 'I';
     private final char DECREASE_SUPER_SAMPLE_KEY = 'O';
     private final char INCREASE_SUPER_SAMPLE_KEY = 'P';
@@ -33,9 +38,11 @@ public class InputHandler implements MouseInputListener, MouseWheelListener, Key
 
     private ArrayList<GraphicsOperation> input;
     private Point mousePoint;
-    private int scrollDistance;
+    private double scrollDistance;
+    private Toolkit toolkit;
 
     public InputHandler() {
+        toolkit = Toolkit.getDefaultToolkit();
         input = new ArrayList<>();
         //input.add(GraphicsOperation.REFRESH);
     }
@@ -81,6 +88,12 @@ public class InputHandler implements MouseInputListener, MouseWheelListener, Key
                 break;
             case INCREASE_SUPER_SAMPLE_KEY:
                 input.add(GraphicsOperation.INCREASE_SUPER_SAMPLE);
+                break;
+            case INCREASE_PRECISION_KEY:
+                input.add(GraphicsOperation.INCREASE_PRECISION);
+                break;
+            case DECREASE_PRECISION_KEY:
+                input.add(GraphicsOperation.DECREASE_PRECISION);
                 break;
             case JULIA_KEY:
                 input.add(GraphicsOperation.JULIA_KEY);
@@ -159,17 +172,27 @@ public class InputHandler implements MouseInputListener, MouseWheelListener, Key
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         mousePoint = e.getPoint();
-        scrollDistance = e.getWheelRotation();
-
-        input.add(
-                scrollDistance < 0
-                        ? GraphicsOperation.WINDOW_SOFT_ZOOM_IN_UPDATE
-                        : GraphicsOperation.WINDOW_SOFT_ZOOM_OUT_UPDATE);
-        scrollDistance = Math.abs(scrollDistance);
+        scrollDistance = e.getPreciseWheelRotation();
+        input.add(GraphicsOperation.WINDOW_MOUSE_ZOOM_UPDATE);
     }
 
-    public int getScrollDistance() {
-        return 2;
+    public double getMouseWheelScrollDistance() {
+        return scrollDistance;
     }
+
+    public boolean isScrollLockOn() {
+        return toolkit.getLockingKeyState(KeyEvent.VK_SCROLL_LOCK);
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+        System.out.println("trigger");
+        if (flag) {
+            input.add(GraphicsOperation.RESIZE);
+        } else {
+            flag = true;
+        }
+    }
+    private boolean flag = false;
 
 }

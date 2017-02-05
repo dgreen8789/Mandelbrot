@@ -7,6 +7,8 @@ package architecture;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  *
@@ -34,6 +36,9 @@ public class Pool<T> {
     public synchronized ArrayList<T> getValues() {
         return (ArrayList<T>)values.clone();
     }
+    public synchronized ArrayList<T> getBackedValues() {
+        return values;
+    }
 
     public synchronized boolean isEmpty() {
         return values.isEmpty();
@@ -46,8 +51,19 @@ public class Pool<T> {
     public synchronized void clear() {
         values.clear();
     }
+
+    public synchronized void forEach(Consumer<T> action) {
+        values.forEach(action);
+    }
     
-        
-    
+
+    public synchronized boolean removeIf(Predicate<? super T> filter) {
+        return values.removeIf(filter);
+    }
+   
+
+    public <T> T[] toArray(T[] a) {
+        return values.toArray(a);
+    }
         
 }

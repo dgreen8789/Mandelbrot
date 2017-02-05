@@ -11,8 +11,8 @@ import java.util.HashSet;
  *
  * @author David
  */
-public abstract interface NumberType {
-
+public abstract class NumberType {
+    
     public abstract int mEscape(NumberType x, NumberType y, HashSet<Integer> hashes, int MAX_ITERATIONS);
     public abstract int JEscape(NumberType x0, NumberType y0, NumberType c0, NumberType c1, HashSet<Integer> hashes, int MAX_ITERATIONS);
     public abstract NumberType add(NumberType addend);
@@ -33,16 +33,17 @@ public abstract interface NumberType {
 
     public abstract NumberType square();
 
-    public NumberType mult2();
+    public abstract NumberType mult2();
 
-    @Override
-    public String toString();
 
     public abstract int compareTo(int i);
 
     @Override
     public abstract int hashCode();
-
+    public boolean isMorePrecise(NumberType o){
+        return getRelativePrecision() - o.getRelativePrecision() > 0;
+    }
+    public abstract int getRelativePrecision();
     public abstract NumberType toNextSystem();
     
     public abstract NumberType toPreviousSystem();

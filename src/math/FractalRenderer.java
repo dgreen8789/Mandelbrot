@@ -15,18 +15,14 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeMap;
-import static math.BoxedEscape.NOT_CALCULATED_CONST;
-import math.numbertypes.NumberType;
-import math.numbertypes.DoubleDouble;
 import math.numbertypes.DoubleNT;
+import math.numbertypes.NumberType;
 
 /**
  *
  * @author David
  */
 public abstract class FractalRenderer {
-
-    public static final Class[] NUMBER_SYSTEMS = new Class[]{DoubleNT.class, DoubleDouble.class};
 
     protected NumberType[] xCoords;
     protected NumberType[] yCoords;
@@ -36,12 +32,19 @@ public abstract class FractalRenderer {
     protected NumberType yEpsilon;
     protected Histogram histogram;
     protected int[][] data;
-    protected int currentSystem;
+    protected boolean[][] valid;
 
-    public FractalRenderer(int width, int height, Class numberType) {
-        xCoords = (NumberType[]) Array.newInstance(NumberType.class, width);
-        yCoords = (NumberType[]) Array.newInstance(NumberType.class, height);
+    protected static final Class DEFAULT_CLASS = DoubleNT.class;
+
+    public FractalRenderer(int width, int height) {
+        this(width, height, DEFAULT_CLASS);
+    }
+
+    public FractalRenderer(int width, int height, Class theClass) {
+        xCoords = (NumberType[]) Array.newInstance(theClass, width);
+        yCoords = (NumberType[]) Array.newInstance(theClass, height);
         data = new int[width][height];
+        valid = new boolean[width][height];
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         resetWindow();
     }
@@ -54,14 +57,13 @@ public abstract class FractalRenderer {
         };
     }
 
-    protected Window changeNumberSystem(Class numberType, Window window) {
-        changeNumberSystem(numberType);
+    protected Window changeWindow(boolean up, Window window) {
         double zl = window.getZoomLevel();
         window = new Window(
-                window.xCenter.toNextSystem(),
-                window.yCenter.toNextSystem(),
-                window.xRange.toNextSystem(),
-                window.yRange.toNextSystem()
+                up ? window.xCenter.toNextSystem() : window.xCenter.toPreviousSystem(),
+                up ? window.yCenter.toNextSystem() : window.yCenter.toPreviousSystem(),
+                up ? window.xRange.toNextSystem() : window.xRange.toPreviousSystem(),
+                up ? window.yRange.toNextSystem() : window.yRange.toPreviousSystem()
         );
         window.setZoomLevel(zl);
         return window;
@@ -84,11 +86,7 @@ public abstract class FractalRenderer {
         return data;
     }
 
-    public int getCurrentSystem() {
-        return currentSystem;
-    }
-
-    public abstract void changeNumberSystem(Class Numbertype);
+    public abstract void changeNumberSystem(boolean up);
 
     public abstract int getMaxIterations();
 
@@ -104,7 +102,7 @@ public abstract class FractalRenderer {
 
     public abstract void draw();
 
-    protected abstract void beginRender(boolean killThreads);
+    protected abstract void beginRender(boolean killThreads, int x0, int y0, int x1, int y1) ;
 
     public abstract boolean hasBoxes();
 
@@ -121,28 +119,41 @@ public abstract class FractalRenderer {
         image = newImg ? new BufferedImage(data.length, data[0].length, BufferedImage.TYPE_INT_ARGB) : image;
         for (int x = 0; x < data.length; x++) {
             for (int y = 0; y < data[0].length; y++) {
+                if (valid[x][y]) {
+                    Integer color = colors.get(data[x][y]);
+                    //colors.replace(colors.lastKey(), Color.RED.getRGB()); 
+                    //makes the most expensive renders be red
+                    if (color == null) {
+                        image.setRGB(x, (int) (y * sinTheta), Color.BLACK.getRGB());
+                        // System.out.printf("Color not found. Value of (%d, %d) is %d\n", x, y, data[x][y]);//comment block for box tracing
+                        //System.out.println("histogram has count " + histogram.get(data[x][y]));
+                    } else {
+                        image.setRGB(x, (int) (y * sinTheta), color);
 
-                Integer color = colors.get(data[x][y]);
-                //colors.replace(colors.lastKey(), Color.RED.getRGB()); 
-                //makes the most expensive renders be red
-                if (color == null) {
-                    image.setRGB(x, (int)(y * sinTheta), Color.BLACK.getRGB());
-                    // System.out.printf("Color not found. Value of (%d, %d) is %d\n", x, y, data[x][y]);//comment block for box tracing
-                    //System.out.println("histogram has count " + histogram.get(data[x][y]));
-                } else {
-                    image.setRGB(x, (int)(y * sinTheta), color);
-
+                    }
                 }
             }
         }
         return image;
     }
+
+    public double propPixelsRendered() {
+        //System.out.println(histogram.getValidPixelCounter().get());
+        //System.out.println( data.length * data[0].length);
+        return histogram.getValidPixelCounter().get() / ((double) data.length * data[0].length);
+    }
+    public int numPixelsRendered(){
+        return histogram.getValidPixelCounter().get();
+    }
     public void resetData() {
-        for (int[] d : data) {
-            Arrays.fill(d, NOT_CALCULATED_CONST);
+        for (boolean[] d : valid) {
+            Arrays.fill(d, false);
 
         }
+        histogram.getValidPixelCounter().set(0);
     }
 
     public abstract void resetWindow();
+    
+    public abstract void resize(int newX, int newY);
 }

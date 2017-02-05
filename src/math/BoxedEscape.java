@@ -1,35 +1,21 @@
 package math;
 
 import math.numbertypes.NumberType;
-import architecture.Pool;
 import graphics.colors.Histogram;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static math.MandelbrotRenderer.MAX_ITERATIONS;
 
 /**
  *
  * @author David
  */
-public class BoxedEscape extends Thread {
+public class BoxedEscape extends RenderMethod {
 
-    private int[][] buffer;
-    private NumberType[] xCoords;
-    private NumberType[] yCoords;
     private int val;
-    private boolean isAlive;
-    public static final int NOT_CALCULATED_CONST = -1;
-    private Pool<MRectangle> inPool;
-    private Pool<MRectangle> outPool;
-    private final Histogram histogram;
 
-    public BoxedEscape(NumberType[] xCoords, NumberType[] yCoords, int[][] buffer, Histogram histogram) {
-        this.xCoords = xCoords;
-        this.yCoords = yCoords;
-        this.buffer = buffer;
-        this.histogram = histogram;
-
+    public BoxedEscape(NumberType[] xCoords, NumberType[] yCoords, int[][] buffer, boolean[][] valid, Histogram histogram) {
+        super(xCoords, yCoords, buffer, valid, histogram);
     }
 
     @Override
@@ -61,72 +47,78 @@ public class BoxedEscape extends Thread {
         int yMax = e.y + e.height - 1;
         //System.out.println("ymax " +  yMax);
         int xMax = e.x + e.width - 1;
-        if (buffer[e.x][e.y] == NOT_CALCULATED_CONST) {
-            buffer[e.x][e.y] = escape(xCoords[e.x], yCoords[e.y]);
-            histogram.increment(buffer[e.x][e.y]);
+        if (!valid[e.x][e.y]) {
+            data[e.x][e.y] = escape(xCoords[e.x], yCoords[e.y]);
+            histogram.increment(data[e.x][e.y]);
+            valid[e.x][e.y] = true;
         }
-        if (buffer[xMax][e.y] == NOT_CALCULATED_CONST) {
-            buffer[xMax][e.y] = escape(xCoords[xMax], yCoords[e.y]);
-            histogram.increment(buffer[xMax][e.y]);
+        if (!valid[xMax][e.y]) {
+            data[xMax][e.y] = escape(xCoords[xMax], yCoords[e.y]);
+            histogram.increment(data[xMax][e.y]);
+            valid[xMax][e.y] = true;
 
         }
-        if (buffer[e.x][yMax] == NOT_CALCULATED_CONST) {
-            buffer[e.x][yMax] = escape(xCoords[e.x], yCoords[yMax]);
-            histogram.increment(buffer[e.x][yMax]);
+        if (!valid[e.x][yMax]) {
+            data[e.x][yMax] = escape(xCoords[e.x], yCoords[yMax]);
+            histogram.increment(data[e.x][yMax]);
+            valid[e.x][yMax] = true;
 
         }
-        if (buffer[xMax][yMax] == NOT_CALCULATED_CONST) {
-            buffer[xMax][yMax] = escape(xCoords[xMax], yCoords[yMax]);
-            histogram.increment(buffer[xMax][yMax]);
+        if (!valid[xMax][yMax]) {
+            data[xMax][yMax] = escape(xCoords[xMax], yCoords[yMax]);
+            histogram.increment(data[xMax][yMax]);
+            valid[xMax][yMax] = true;
         }
-        val = buffer[e.x][e.y];
+        val = data[e.x][e.y];
         //System.out.println(val);
-        if (buffer[e.x][yMax] != val) {
+        if (data[e.x][yMax] != val) {
             return false;
         }
-        if (buffer[xMax][e.y] != val) {
+        if (data[xMax][e.y] != val) {
             return false;
         }
-        if (buffer[xMax][yMax] != val) {
+        if (data[xMax][yMax] != val) {
             return false;
         }
         xLoop:
         for (int x = e.x + 1; x < xMax; x++) { //corners left off, should have been calculated earlier
-            if (buffer[x][e.y] == NOT_CALCULATED_CONST) {
-                buffer[x][e.y] = escape(xCoords[x], yCoords[e.y]);
-                histogram.increment(buffer[x][e.y]);
+            if (!valid[x][e.y]) {
+                data[x][e.y] = escape(xCoords[x], yCoords[e.y]);
+                histogram.increment(data[x][e.y]);
+                valid[x][e.y] = true;
 
             }
-            if (buffer[x][e.y] != val) {
+            if (data[x][e.y] != val) {
                 return false;
             }
-            if (buffer[x][yMax] == NOT_CALCULATED_CONST) {
-                buffer[x][yMax] = escape(xCoords[x], yCoords[yMax]);
-                histogram.increment(buffer[x][yMax]);
+            if (!valid[x][yMax]) {
+                data[x][yMax] = escape(xCoords[x], yCoords[yMax]);
+                histogram.increment(data[x][yMax]);
+                valid[x][yMax] = true;
 
             }
-            if (buffer[x][yMax] != val) {
+            if (data[x][yMax] != val) {
                 return false;
             }
         }
         yLoop:
         for (int y = e.y + 1; y < yMax; y++) {//corners left off, should have been calculated earlier
-            if (buffer[e.x][y] == NOT_CALCULATED_CONST) {
-                buffer[e.x][y] = escape(xCoords[e.x], yCoords[y]);
-                histogram.increment(buffer[e.x][y]);
-
+            if (!valid[e.x][y]) {
+                data[e.x][y] = escape(xCoords[e.x], yCoords[y]);
+                histogram.increment(data[e.x][y]);
+                valid[e.x][y] = true;
             }
 
-            if (buffer[e.x][y] != val) {
+            if (data[e.x][y] != val) {
                 return false;
             }
 
-            if (buffer[xMax][y] == NOT_CALCULATED_CONST) {
-                buffer[xMax][y] = escape(xCoords[xMax], yCoords[y]);
-                histogram.increment(buffer[xMax][y]);
-
+            if (!valid[xMax][y]) {
+                data[xMax][y] = escape(xCoords[xMax], yCoords[y]);
+                histogram.increment(data[xMax][y]);
+                valid[xMax][y] = true;
             }
-            if (buffer[xMax][y] != val) {
+            if (data[xMax][y] != val) {
                 return false;
             }
         }
@@ -134,7 +126,7 @@ public class BoxedEscape extends Thread {
     }
 
     /**
-     * Updates the buffer array
+     * Updates the data array
      *
      * @param e
      */
@@ -142,13 +134,14 @@ public class BoxedEscape extends Thread {
         for (int x = e.x; x < e.x + e.width; x++) {
             for (int y = e.y; y < e.y + e.height; y++) {
 
-                if (buffer[x][y] == NOT_CALCULATED_CONST) {
-                    buffer[x][y] = escape(xCoords[x], yCoords[y]);
-                    histogram.increment(buffer[x][y]);
+                if (!valid[x][y]) {
+                    data[x][y] = escape(xCoords[x], yCoords[y]);
+                    histogram.increment(data[x][y]);
+                    valid[x][y] = true;
                 }
 
                 //System.out.println(xCurr + " " + yCurr + "i");
-                //System.out.println(buffer[x][y] + "\n");
+                //System.out.println(data[x][y] + "\n");
                 //System.out.println(escape_value);
             }
             //System.out.println("Line " + xCurr + " \\ " + data.length);
@@ -159,30 +152,31 @@ public class BoxedEscape extends Thread {
     private void render(MRectangle e) {
         int a, b, c, d, area;
         area = e.width * e.height;
-        
         if (testBox(e)) {
             for (int x = e.x; x < e.x + e.width; x++) {
-                for (int y = e.y; y < e.y + e.height; y++) {
-                    buffer[x][y] = val;
-                }
+                Arrays.fill(data[x], e.y, e.y + e.height, val);
+                Arrays.fill(valid[x], e.y, e.y + e.height, true);
             }
-            histogram.increment(buffer[e.x][e.y], area);
+            histogram.increment(data[e.x][e.y], area);
             e.setPixelCalculated(false);
+            e.setValue(val);
             outPool.add(e);
+            histogram.getValidPixelCounter().addAndGet(area);
             return;
         }
         if (area < 25) {
             iteratePlain(e);
             e.setPixelCalculated(true);
             outPool.add(e);
+            histogram.getValidPixelCounter().addAndGet(area);
             return;
         }
         //dVal is the discrepancy between the edges, we use it to detect structure
-        a = Math.max(buffer[e.x][e.y], buffer[e.x + e.width - 1][e.y]);
-        b = Math.min(buffer[e.x][e.y], buffer[e.x + e.width - 1][e.y]);
+        a = Math.max(data[e.x][e.y], data[e.x + e.width - 1][e.y]);
+        b = Math.min(data[e.x][e.y], data[e.x + e.width - 1][e.y]);
 
-        c = Math.max(buffer[e.x + e.width - 1][e.y + e.height - 1], buffer[e.x][e.y + e.height - 1]);
-        d = Math.min(buffer[e.x + e.width - 1][e.y + e.height - 1], buffer[e.x][e.y + e.height - 1]);
+        c = Math.max(data[e.x + e.width - 1][e.y + e.height - 1], data[e.x][e.y + e.height - 1]);
+        d = Math.min(data[e.x + e.width - 1][e.y + e.height - 1], data[e.x][e.y + e.height - 1]);
 
         //maximum difference
         if (Math.max(a, c) - Math.min(b, d) > area && area < 100) {
@@ -190,6 +184,7 @@ public class BoxedEscape extends Thread {
             iteratePlain(e);
             e.setPixelCalculated(true);
             outPool.add(e);
+            histogram.getValidPixelCounter().addAndGet(area);
         } else {
             MRectangle.split(e, inPool);
             //System.out.println(inPool.getValues());
@@ -200,30 +195,4 @@ public class BoxedEscape extends Thread {
 //        } catch (InterruptedException ex) {
 //        }
     }
-
-
-    public void setxCoords(NumberType[] xCoords) {
-        this.xCoords = xCoords;
-    }
-
-    public void setyCoords(NumberType[] yCoords) {
-        this.yCoords = yCoords;
-    }
-
-    public void setInPool(Pool<MRectangle> inPool) {
-        this.inPool = inPool;
-    }
-
-    public void setOutPool(Pool<MRectangle> outPool) {
-        this.outPool = outPool;
-    }
-
-    public void setBuffer(int[][] buffer) {
-        this.buffer = buffer;
-    }
-
-    public void kill() {
-        this.isAlive = false;
-    }
-
 }

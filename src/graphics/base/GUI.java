@@ -1,6 +1,5 @@
 package graphics.base;
 
-import architecture.Window;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -25,8 +24,8 @@ public class GUI extends Thread {
     private Graphics2D backgroundGraphics;
     private Graphics2D graphics;
     private final JFrame frame;
-    private int width = 432 * 2;
-    private int height = 288 * 2;
+    private int width = 1366;
+    private int height =768;
     private final GraphicsConfiguration config
             = GraphicsEnvironment.getLocalGraphicsEnvironment()
             .getDefaultScreenDevice()
@@ -44,17 +43,17 @@ public class GUI extends Thread {
         // JFrame
         frame = new JFrame();
         frame.addWindowListener(new FrameClose());
+        
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         frame.setSize(width, height);
         if (FULL_SCREEN) {
             boolean b = setFullScreen(frame);
-            //System.out.println(frame.getWidth());
+       //System.out.println(frame.getWidth());
 
             width = frame.getWidth();
             height = frame.getHeight();
         }
-        frame.setResizable(false);
         frame.setVisible(true);
 
         // Canvas
@@ -71,7 +70,7 @@ public class GUI extends Thread {
         } while (strategy == null);
 
         //Initialize Graphics
-        graphicsControl = new GraphicsController(width, height, frame.getInsets());
+        graphicsControl = new GraphicsController(frame);
 
         //Initialize input listeners
         this.inputHandler = new InputHandler();
@@ -85,10 +84,12 @@ public class GUI extends Thread {
     }
   
     private void addListeners() {
+        
         canvas.addMouseMotionListener(inputHandler);
         canvas.addKeyListener(inputHandler);
         canvas.addMouseListener(inputHandler);
         canvas.addMouseWheelListener(inputHandler);
+        canvas.addComponentListener(inputHandler);
     }
 
     public boolean setFullScreen(JFrame frame) {
@@ -149,7 +150,6 @@ public class GUI extends Thread {
             background = create(width, height, true);
             backgroundGraphics = (Graphics2D) background.getGraphics();
             //System.out.println(width + " " + height);
-            frame.setTitle("Night of No Limits Mandelbrot Fractal Generator");
             // Update Graphics
 
             do {
@@ -174,5 +174,6 @@ public class GUI extends Thread {
         graphicsControl.render(g, inputHandler.getInput());
 
     }
+    
 
 }

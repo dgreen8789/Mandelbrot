@@ -13,7 +13,7 @@ import java.util.HashSet;
  * @see http://crd.lbl.gov/~dhbailey/mpdist/index.html
  * @date 2006/10/22
  */
-public strictfp class DoubleDouble implements NumberType {
+public strictfp class DoubleDouble extends NumberType {
 
     public static final char[] BASE_36_TABLE = { //
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', //
@@ -1625,6 +1625,11 @@ public strictfp class DoubleDouble implements NumberType {
     @Override
     public NumberType toPreviousSystem() {
         return new DoubleNT(hi);
+    }
+
+    @Override
+    public int getRelativePrecision() {
+        return 2;
     }
 
 }

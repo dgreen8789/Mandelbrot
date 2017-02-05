@@ -19,18 +19,28 @@ import math.numbertypes.NumberType;
 public class JuliaRenderer extends MandelbrotRenderer {
 
     //Together these form C
-    protected NumberType x0;
-    protected NumberType y0;
+    protected NumberType cX;
+    protected NumberType cY;
     private final boolean connected;
 
-    public JuliaRenderer(int width, int height, int numberType, NumberType x0, NumberType y0) {
-        super(width, height, numberType);
-
+    public JuliaRenderer(int width, int height, NumberType cX, NumberType cY) {
+        super(width, height, cX.getClass());
         threads = new JBoxedEscape[GraphicsController.THREAD_COUNT];
-        this.x0 = x0;
-        this.y0 = y0;
-        connected = (this.x0.mEscape(this.x0, this.y0, new HashSet<>(), MAX_ITERATIONS) == MAX_ITERATIONS);
-        System.out.println("The julia set for " + x0 + " + " + y0 + "i is " + (connected ? "" : " not ") + "connected");
+        this.cX = cX;
+        this.cY = cY;
+        for (BoxedEscape thread : threads) {
+            if (thread != null) {
+                thread.setxCoords(xCoords);
+                thread.setyCoords(yCoords);
+            }
+        }
+        while (this.window.xCenter.getClass() != cX.getClass()) {
+            System.out.println("call");
+            this.changeWindow(true, window);
+        }
+        connected = (this.cX.mEscape(this.cX, this.cY, new HashSet<>(), MAX_ITERATIONS) == MAX_ITERATIONS);
+        System.out.println("The julia set for " + cX + " + " + cY + "i is " + (connected ? "" : " not ") + "connected");
+
     }
 
 //    @Override
@@ -38,17 +48,20 @@ public class JuliaRenderer extends MandelbrotRenderer {
 //        return connected;
 //    }
     @Override
-    protected void beginRender(boolean killThreads) {
+    protected void beginRender(boolean killThreads, int x0, int y0, int x1, int y1) {
+        //System.out.println("started render");
+        inPool.clear();
+        MRectangle.split(new MRectangle(x0, y0, x1, y1), inPool);
         outPool = new Pool<>();
         for (int i = 0; i < threads.length; i++) {
             if (killThreads) {
                 if (threads[i] != null) {
                     threads[i].kill();
                 }
-                threads[i] = new JBoxedEscape(xCoords, yCoords, data, histogram);
+                threads[i] = new JBoxedEscape(xCoords, yCoords, data, valid, histogram);
                 threads[i].setInPool(inPool);
-                ((JBoxedEscape) threads[i]).setX0(x0);
-                ((JBoxedEscape) threads[i]).setY0(y0);
+                ((JBoxedEscape) threads[i]).setX0(cX);
+                ((JBoxedEscape) threads[i]).setY0(cY);
                 threads[i].setOutPool(outPool);
                 threads[i].setName("Drawer thread " + i);
                 threads[i].start();
@@ -59,15 +72,20 @@ public class JuliaRenderer extends MandelbrotRenderer {
     }
 
     public void setConstant(NumberType x, NumberType y) {
-        x0 = x;
-        y0 = y;
+        while (x.getClass() != cX.getClass()) {
+            changeNumberSystem(x.isMorePrecise(cX));
+        }
+        cX = x;
+        cY = y;
     }
 
     @Override
-    public void changeNumberSystem(Class numberType) {
-        super.changeNumberSystem(numberType);
-        x0 = x0 == null ? null : x0.toNextSystem();
-        y0 = y0 == null ? null : y0.toNextSystem();
+    public void changeNumberSystem(boolean up) {
+        super.changeNumberSystem(up);
+        if (cX != null && cY != null) {//we'll just deal with this fail somewhere else
+            cX = up ? cX.toNextSystem() : cX.toPreviousSystem();
+            cY = up ? cY.toNextSystem() : cY.toPreviousSystem();
+        }
     }
 
     @Override

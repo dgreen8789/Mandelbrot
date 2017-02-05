@@ -25,24 +25,13 @@ public class Window {
 
     }
 
-    public void zoomIn(NumberType xCenter, NumberType yCenter, double factor) {
+    public void zoom(NumberType xCenter, NumberType yCenter, double factor) {
         //System.out.println("zoomed in. Factor =  " + factor);
         xRange = xRange.divide(factor);
         yRange = yRange.divide(factor);
         this.xCenter = xCenter;
         this.yCenter = yCenter;
         zoomLevel *= factor;
-        generatePresentationString();
-    }
-
-    public void zoomOut(NumberType xCenter, NumberType yCenter, double factor) {
-        //System.out.println("zoomed out. Factor =  " + factor);
-
-        xRange = xRange.multiply(factor);
-        yRange = yRange.multiply(factor);
-        this.xCenter = xCenter;
-        this.yCenter = yCenter;
-        zoomLevel /= factor;
         generatePresentationString();
     }
 

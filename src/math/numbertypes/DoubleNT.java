@@ -12,7 +12,7 @@ import java.util.HashSet;
  *
  * @author David
  */
-public class DoubleNT implements NumberType {
+public class DoubleNT extends NumberType {
 
     public static final DoubleNT ZERO = new DoubleNT(0);
     public static final DoubleNT ONE = new DoubleNT(1);
@@ -108,7 +108,7 @@ public class DoubleNT implements NumberType {
         long bits = doubleToRawLongBits(value);
         return (int) (bits ^ (bits >>> 32));
     }
-
+    
     public int mEscape(NumberType x_curr, NumberType y_curr, HashSet<Integer> hashes, int MAX_ITERATIONS) {
         // System.out.println("esc start");
         double xn, yn, y0, x0, xt;
@@ -164,7 +164,7 @@ public class DoubleNT implements NumberType {
         while (z < MAX_ITERATIONS - 1) {
             xt = xn * xn;
 
-            if (xt + yn * yn > 4) {
+            if (xt + yn * yn == Double.POSITIVE_INFINITY) {
                 //System.out.println("problem");
                 //System.out.println("esc stop");
                 return z;
@@ -182,6 +182,11 @@ public class DoubleNT implements NumberType {
         }
         //System.out.println("esc stop");
         return MAX_ITERATIONS;
+    }
+
+    @Override
+    public int getRelativePrecision() {
+        return 1;
     }
 
 }

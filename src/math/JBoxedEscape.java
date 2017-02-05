@@ -16,8 +16,8 @@ import math.numbertypes.NumberType;
 public class JBoxedEscape extends BoxedEscape{
     private NumberType x0;
     private NumberType y0;
-    public JBoxedEscape(NumberType[] xCoords, NumberType[] yCoords, int[][] buffer, Histogram histogram) {
-        super(xCoords, yCoords, buffer, histogram);
+    public JBoxedEscape(NumberType[] xCoords, NumberType[] yCoords, int[][] data, boolean[][] valid, Histogram histogram) {
+        super(xCoords, yCoords, data, valid, histogram);
     }
 
     @Override
